@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useData } from '../../contexts/DataContext';
+import { useUser } from '../../contexts/UserContext';
 import { CATEGORIES, STATUSES } from '../../data/gri-metrics';
 import {
   METRIC_FORMS,
@@ -17,6 +18,10 @@ import {
 
 export default function DataCollection() {
   const { activeMetrics, dataEntries, updateDataEntry, bulkUpdateEntries, addComment } = useData();
+  const { can } = useUser();
+  const canEnter = can('data:enter');   // Contributor / Admin — create & submit data
+  const canReview = can('data:review'); // Reviewer / Admin — start review, approve, reject
+  const canComment = can('comment:create') || can('comment:reply');
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -48,9 +53,11 @@ export default function DataCollection() {
           <p>Enter, review, and approve ESG metric data for your reporting period.</p>
         </div>
         <div className="page-header-actions">
-          <button className="btn btn-secondary" onClick={() => setShowCSVUpload(true)}>
-            <Upload size={16} /> Import CSV
-          </button>
+          {can('data:csv') && (
+            <button className="btn btn-secondary" onClick={() => setShowCSVUpload(true)}>
+              <Upload size={16} /> Import CSV
+            </button>
+          )}
           <button className="btn btn-secondary" onClick={() => {
             const csv = generateCSVTemplate(activeMetrics);
             const blob = new Blob([csv], { type: 'text/csv' });
@@ -165,6 +172,9 @@ export default function DataCollection() {
         <MetricEntryModal
           metric={selectedMetric}
           entry={dataEntries[selectedMetric.id] || {}}
+          canEnter={canEnter}
+          canReview={canReview}
+          canComment={canComment}
           onClose={() => setSelectedMetric(null)}
           onSave={(data) => updateDataEntry(selectedMetric.id, data)}
           onAddComment={(text) => addComment(selectedMetric.id, text)}
@@ -184,7 +194,7 @@ export default function DataCollection() {
 
 // ─── METRIC ENTRY MODAL ───────────────────────────────────────────────────────
 
-function MetricEntryModal({ metric, entry, onClose, onSave, onAddComment }) {
+function MetricEntryModal({ metric, entry, canEnter, canReview, canComment, onClose, onSave, onAddComment }) {
   const form = METRIC_FORMS[metric.id];
   const initialVals = form ? parseMetricValue(entry.value) : {};
 
@@ -300,37 +310,39 @@ function MetricEntryModal({ metric, entry, onClose, onSave, onAddComment }) {
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-4)' }}>
-            <input
-              className="form-input"
-              placeholder="Add a comment..."
-              value={commentText}
-              onChange={e => setCommentText(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleAddComment()}
-            />
-            <button className="btn btn-ghost" onClick={handleAddComment}><Send size={16} /></button>
-          </div>
+          {canComment && (
+            <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-4)' }}>
+              <input
+                className="form-input"
+                placeholder="Add a comment..."
+                value={commentText}
+                onChange={e => setCommentText(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleAddComment()}
+              />
+              <button className="btn btn-ghost" onClick={handleAddComment}><Send size={16} /></button>
+            </div>
+          )}
         </div>
 
         <div className="modal-footer">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
 
-          {(status === 'pending' || status === 'in-progress' || status === 'rejected') && (
+          {canEnter && (status === 'pending' || status === 'in-progress' || status === 'rejected') && (
             <button className="btn btn-secondary" onClick={() => handleSubmit('in-progress')}>
               Save Draft
             </button>
           )}
-          {(status === 'pending' || status === 'in-progress' || status === 'rejected') && (
+          {canEnter && (status === 'pending' || status === 'in-progress' || status === 'rejected') && (
             <button className="btn btn-primary" onClick={() => handleSubmit('submitted')}>
               <Send size={16} /> Submit for Review
             </button>
           )}
-          {status === 'submitted' && (
+          {canReview && status === 'submitted' && (
             <button className="btn btn-primary" onClick={() => handleSubmit('under-review')}>
               <Clock size={16} /> Start Review
             </button>
           )}
-          {status === 'under-review' && (
+          {canReview && status === 'under-review' && (
             <>
               <button className="btn btn-danger" onClick={() => handleSubmit('rejected')}>
                 <XCircle size={16} /> Reject
@@ -340,7 +352,7 @@ function MetricEntryModal({ metric, entry, onClose, onSave, onAddComment }) {
               </button>
             </>
           )}
-          {status === 'approved' && (
+          {canReview && status === 'approved' && (
             <button className="btn btn-secondary" onClick={() => handleSubmit('in-progress')}>Reopen</button>
           )}
         </div>

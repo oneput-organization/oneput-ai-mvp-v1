@@ -5,10 +5,7 @@ import {
   Search,
   ChevronDown,
   ChevronUp,
-  ToggleLeft,
-  ToggleRight,
   Filter,
-  Download,
 } from 'lucide-react';
 
 export default function MetricsRegistry() {

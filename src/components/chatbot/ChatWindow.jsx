@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useApp } from '../../contexts/AppContext';
 import { GRI_METRICS } from '../../data/gri-metrics';
-import { MessageSquare, X, Send, Sparkles, Maximize2 } from 'lucide-react';
+import { X, Send, Sparkles, Maximize2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 // Simulated AI response engine

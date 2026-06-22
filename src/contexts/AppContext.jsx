@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useMemo } from 'react';
+import { createContext, useContext, useState } from 'react';
 import { storage } from '../utils/storage';
 
 const AppContext = createContext();
@@ -82,4 +82,5 @@ export function AppProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useApp = () => useContext(AppContext);

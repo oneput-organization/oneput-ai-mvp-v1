@@ -586,7 +586,9 @@ export function parseMetricValue(rawValue) {
   try {
     const parsed = JSON.parse(rawValue);
     if (typeof parsed === 'object' && parsed !== null) return parsed;
-  } catch {}
+  } catch {
+    // not JSON — fall through to raw value
+  }
   return { _raw: rawValue };
 }
 

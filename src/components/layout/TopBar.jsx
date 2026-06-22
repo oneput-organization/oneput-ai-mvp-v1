@@ -1,6 +1,10 @@
 import { useLocation } from 'react-router-dom';
 import { useApp } from '../../contexts/AppContext';
+import { useUser } from '../../contexts/UserContext';
+import { roleLabel } from '../../data/permissions';
 import { Bell, Search } from 'lucide-react';
+
+const initialsOf = (name = '') => name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
 
 const breadcrumbMap = {
   '/': 'Dashboard',
@@ -22,6 +26,7 @@ const sectionMap = {
 
 export default function TopBar() {
   const { settings } = useApp();
+  const { users, currentUser, switchUser } = useUser();
   const location = useLocation();
   const current = breadcrumbMap[location.pathname] || 'Page';
   const section = sectionMap[location.pathname] || '';
@@ -47,7 +52,20 @@ export default function TopBar() {
           <Bell size={18} />
           <span className="notification-dot"></span>
         </button>
-        <div className="topbar-avatar" data-tooltip="Admin">A</div>
+        <select
+          className="form-select"
+          value={currentUser.id}
+          onChange={e => switchUser(e.target.value)}
+          data-tooltip="Switch role (demo)"
+          style={{ height: 34, fontSize: 'var(--font-xs)', maxWidth: 220 }}
+        >
+          {users.map(u => (
+            <option key={u.id} value={u.id}>{u.name} · {roleLabel(u.role)}</option>
+          ))}
+        </select>
+        <div className="topbar-avatar" data-tooltip={roleLabel(currentUser.role)}>
+          {initialsOf(currentUser.name)}
+        </div>
       </div>
     </header>
   );

@@ -6,9 +6,7 @@ import {
   Send,
   Sparkles,
   Plus,
-  MessageSquare,
   Trash2,
-  Bot,
 } from 'lucide-react';
 
 // Reuse the response generator

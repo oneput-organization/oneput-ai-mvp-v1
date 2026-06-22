@@ -20,9 +20,9 @@ Steps:
    - Skill: **`rbac-roles`**.
 
 Acceptance:
-- [ ] Five roles exist; current user/role selectable.
-- [ ] Permissions are data-driven via `can()`; routes/UI/actions gated accordingly.
-- [ ] Data visibility scoped per role; setup gate still works; lint passes.
+- [x] Five roles exist; current user/role selectable. _(ROLES in `data/permissions.js`; role switcher in `TopBar`; `UserContext` with seed user per role.)_
+- [x] Permissions are data-driven via `can()`; routes/UI/actions gated accordingly. _(`ProtectedRoute permission=`; `DataCollection` gates enter/review/comment + Import CSV by `can()`.)_
+- [x] Data visibility scoped per role; setup gate still works; lint passes. _(Read-only roles can't edit/submit/approve; setup gate intact; `npm run lint` green. Per-assignee record scoping lands in Module 3 once assignment exists.)_
 
 ## Part B — Audit log
 

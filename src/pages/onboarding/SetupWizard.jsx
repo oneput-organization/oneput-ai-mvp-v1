@@ -6,7 +6,7 @@ import { GRI_METRICS } from '../../data/gri-metrics';
 import { INDUSTRY_METRIC_MAP, UNIVERSAL_METRIC_IDS, getMetricIdsForIndustry } from '../../data/gri-industry-mapping';
 import {
   Building2, Settings, CheckCircle2, ArrowRight, ArrowLeft,
-  Sparkles, Lock, ExternalLink,
+  Sparkles, Lock,
 } from 'lucide-react';
 
 const STEPS = [
@@ -112,7 +112,7 @@ function StepIndicator({ current }) {
 // ── Step 1: Company Profile ──────────────────────────────────────────────────
 
 function Step1({ onNext }) {
-  const { company, setCompany, isCompanyComplete } = useApp();
+  const { company, setCompany } = useApp();
 
   const handleChange = (field, value) => setCompany({ [field]: value });
 
