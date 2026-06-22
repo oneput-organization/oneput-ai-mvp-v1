@@ -1,13 +1,15 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import { storage } from '../utils/storage';
 import { GRI_METRICS } from '../data/gri-metrics';
 import { getMetricIdsForIndustry, isMetricRequired } from '../data/gri-industry-mapping';
 import { useApp } from './AppContext';
+import { useUser } from './UserContext';
 
 const DataContext = createContext();
 
 export function DataProvider({ children }) {
   const { company } = useApp();
+  const { currentUser } = useUser();
 
   // Active metrics — seeded from industry mapping on first load
   const [activeMetricIds, setActiveMetricIdsState] = useState(() => {
@@ -21,6 +23,14 @@ export function DataProvider({ children }) {
   const [dataEntries, setDataEntriesState] = useState(
     () => storage.get('dataEntries', {})
   );
+
+  // Append-only audit trail: { id, actor, action, target, before, after, timestamp }
+  const [auditEvents, setAuditEventsState] = useState(() => storage.get('auditEvents', []));
+
+  // Always-current view of entries so audit actions can read `before` without stale closures.
+  // Synced in an effect (refs must not be written during render).
+  const entriesRef = useRef(dataEntries);
+  useEffect(() => { entriesRef.current = dataEntries; }, [dataEntries]);
 
   const setActiveMetricIds = (ids) => {
     setActiveMetricIdsState(ids);
@@ -38,6 +48,23 @@ export function DataProvider({ children }) {
     const ids = active ? GRI_METRICS.map(m => m.id) : [];
     setActiveMetricIds(ids);
   };
+
+  // Centralized audit logging — call from data-layer actions, never from components.
+  const logEvent = useCallback((action, target, before, after) => {
+    setAuditEventsState(prev => {
+      const next = [...prev, {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        actor: currentUser ? { id: currentUser.id, name: currentUser.name, role: currentUser.role } : null,
+        action,
+        target,
+        before: before ?? null,
+        after: after ?? null,
+        timestamp: new Date().toISOString(),
+      }];
+      storage.set('auditEvents', next);
+      return next;
+    });
+  }, [currentUser]);
 
   const updateDataEntry = useCallback((metricId, data) => {
     setDataEntriesState(prev => {
@@ -69,6 +96,25 @@ export function DataProvider({ children }) {
     });
   }, []);
 
+  // Advance an entry's status (Owner -> Reviewer -> Approved flow). Logs the transition,
+  // or a plain update when the status is unchanged (e.g. saving an edit at the same status).
+  const setEntryStatus = useCallback((metricId, newStatus, patch = {}) => {
+    const before = entriesRef.current[metricId]?.status || 'pending';
+    updateDataEntry(metricId, { ...patch, status: newStatus });
+    if (before === newStatus) {
+      logEvent('data.update', { type: 'metric', id: metricId }, null, null);
+    } else {
+      logEvent('data.status', { type: 'metric', id: metricId }, before, newStatus);
+    }
+  }, [updateDataEntry, logEvent]);
+
+  // Assign a metric to an owner (userId). Logs the (re)assignment.
+  const assignMetric = useCallback((metricId, userId) => {
+    const before = entriesRef.current[metricId]?.assignee || null;
+    updateDataEntry(metricId, { assignee: userId });
+    logEvent('data.assign', { type: 'metric', id: metricId }, before, userId);
+  }, [updateDataEntry, logEvent]);
+
   const addComment = useCallback((metricId, comment) => {
     setDataEntriesState(prev => {
       const entry = prev[metricId] || { value: '', status: 'pending', notes: '', assignee: '', comments: [] };
@@ -79,7 +125,7 @@ export function DataProvider({ children }) {
           comments: [...(entry.comments || []), {
             id: Date.now().toString(),
             text: comment,
-            author: 'Admin',
+            author: currentUser?.name || 'Unknown',
             createdAt: new Date().toISOString(),
           }],
           updatedAt: new Date().toISOString(),
@@ -88,7 +134,8 @@ export function DataProvider({ children }) {
       storage.set('dataEntries', updated);
       return updated;
     });
-  }, []);
+    logEvent('comment.add', { type: 'metric', id: metricId }, null, comment);
+  }, [currentUser, logEvent]);
 
   const applyIndustryMetrics = useCallback((industry) => {
     const ids = getMetricIdsForIndustry(industry) ?? GRI_METRICS.map(m => m.id);
@@ -135,7 +182,11 @@ export function DataProvider({ children }) {
       dataEntries,
       updateDataEntry,
       bulkUpdateEntries,
+      setEntryStatus,
+      assignMetric,
       addComment,
+      auditEvents,
+      logEvent,
       stats,
       completionPercent,
     }}>

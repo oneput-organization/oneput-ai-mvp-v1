@@ -10,25 +10,68 @@ import {
   validateStructuredForm,
 } from '../../data/gri-metric-forms';
 import { validateMetricValue, parseCSV, generateCSVTemplate } from '../../utils/validation';
+import { fetchFromApi } from '../../services/apiImport';
 import {
   Search, Filter, Upload, Download, X, Send,
   CheckCircle2, XCircle, Clock, AlertTriangle,
   FileSpreadsheet, ChevronRight, MessageSquare, Info,
+  Users, Plug, History,
 } from 'lucide-react';
 
+// Human-readable summary of an audit event for the metric history list.
+function describeEvent(ev) {
+  switch (ev.action) {
+    case 'data.status':
+      return `moved status ${ev.before || 'pending'} → ${ev.after}`;
+    case 'data.update':
+      return 'updated the entry';
+    case 'data.assign':
+      return ev.after ? 'assigned the data owner' : 'unassigned the data owner';
+    case 'comment.add':
+      return 'added a comment';
+    default:
+      return ev.action;
+  }
+}
+
 export default function DataCollection() {
-  const { activeMetrics, dataEntries, updateDataEntry, bulkUpdateEntries, addComment } = useData();
-  const { can } = useUser();
-  const canEnter = can('data:enter');   // Contributor / Admin — create & submit data
-  const canReview = can('data:review'); // Reviewer / Admin — start review, approve, reject
+  const {
+    activeMetrics, dataEntries, bulkUpdateEntries,
+    setEntryStatus, assignMetric, addComment, auditEvents,
+  } = useData();
+  const { can, users, currentUser } = useUser();
+  const canEnter = can('data:enter');     // Contributor / Admin — create & submit data
+  const canReview = can('data:review');   // Reviewer / Admin — start review, approve, reject
   const canComment = can('comment:create') || can('comment:reply');
+  const canAssign = can('data:assign');   // Admin — assign owners
+  const seesAll = can('data:view-all');   // Reviewer/Approver/Auditor/Admin; Contributor sees own only
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [selectedMetric, setSelectedMetric] = useState(null);
   const [showCSVUpload, setShowCSVUpload] = useState(false);
 
-  const filtered = activeMetrics.filter(m => {
+  const contributors = users.filter(u => u.role === 'Contributor');
+  const userName = (id) => users.find(u => u.id === id)?.name || null;
+
+  // Round-robin assign every unassigned, active metric across Contributors.
+  const autoAssign = () => {
+    if (!canAssign || contributors.length === 0) return;
+    let i = 0;
+    activeMetrics.forEach(m => {
+      if (!dataEntries[m.id]?.assignee) {
+        assignMetric(m.id, contributors[i % contributors.length].id);
+        i++;
+      }
+    });
+  };
+
+  // Contributors only see metrics assigned to them.
+  const visibleMetrics = seesAll
+    ? activeMetrics
+    : activeMetrics.filter(m => dataEntries[m.id]?.assignee === currentUser.id);
+
+  const filtered = visibleMetrics.filter(m => {
     const entry = dataEntries[m.id] || {};
     const matchSearch = !search ||
       m.code.toLowerCase().includes(search.toLowerCase()) ||
@@ -40,7 +83,7 @@ export default function DataCollection() {
 
   const statusCounts = {};
   STATUSES.forEach(s => { statusCounts[s.key] = 0; });
-  activeMetrics.forEach(m => {
+  visibleMetrics.forEach(m => {
     const status = (dataEntries[m.id] || {}).status || 'pending';
     if (statusCounts[status] !== undefined) statusCounts[status]++;
   });
@@ -53,6 +96,20 @@ export default function DataCollection() {
           <p>Enter, review, and approve ESG metric data for your reporting period.</p>
         </div>
         <div className="page-header-actions">
+          {canAssign && (
+            <button className="btn btn-secondary" onClick={autoAssign} title="Round-robin unassigned metrics across Contributors">
+              <Users size={16} /> Auto-assign
+            </button>
+          )}
+          {canAssign && (
+            <button className="btn btn-secondary" onClick={async () => {
+              const res = await fetchFromApi('erp');
+              if (res.entries.length > 0) bulkUpdateEntries(res.entries);
+              else alert(res.message);
+            }} title="Import from connected ERP / API (SAP, Oracle)">
+              <Plug size={16} /> Import via API
+            </button>
+          )}
           {can('data:csv') && (
             <button className="btn btn-secondary" onClick={() => setShowCSVUpload(true)}>
               <Upload size={16} /> Import CSV
@@ -121,6 +178,7 @@ export default function DataCollection() {
               <th style={{ width: 100 }}>Code</th>
               <th>Metric</th>
               <th style={{ width: 120 }}>Category</th>
+              <th style={{ width: 150 }}>Owner</th>
               <th style={{ width: 160 }}>Value</th>
               <th style={{ width: 130 }}>Status</th>
               <th style={{ width: 40 }}></th>
@@ -146,6 +204,13 @@ export default function DataCollection() {
                     )}
                   </td>
                   <td><span className={`badge ${categoryBadge}`}>{metric.category}</span></td>
+                  <td>
+                    {entry.assignee ? (
+                      <span style={{ fontSize: 'var(--font-sm)' }}>{userName(entry.assignee) || 'Unknown'}</span>
+                    ) : (
+                      <span style={{ fontSize: 'var(--font-xs)', color: 'var(--neutral-400)' }}>Unassigned</span>
+                    )}
+                  </td>
                   <td>
                     <span style={{ fontWeight: display ? 600 : 400, color: display ? 'var(--neutral-800)' : 'var(--neutral-400)', fontSize: 'var(--font-sm)' }}>
                       {display || '—'}
@@ -175,8 +240,12 @@ export default function DataCollection() {
           canEnter={canEnter}
           canReview={canReview}
           canComment={canComment}
+          canAssign={canAssign}
+          contributors={contributors}
+          history={auditEvents.filter(e => e.target?.id === selectedMetric.id)}
           onClose={() => setSelectedMetric(null)}
-          onSave={(data) => updateDataEntry(selectedMetric.id, data)}
+          onSave={(data) => setEntryStatus(selectedMetric.id, data.status, { value: data.value, notes: data.notes })}
+          onAssign={(userId) => assignMetric(selectedMetric.id, userId)}
           onAddComment={(text) => addComment(selectedMetric.id, text)}
         />
       )}
@@ -194,7 +263,7 @@ export default function DataCollection() {
 
 // ─── METRIC ENTRY MODAL ───────────────────────────────────────────────────────
 
-function MetricEntryModal({ metric, entry, canEnter, canReview, canComment, onClose, onSave, onAddComment }) {
+function MetricEntryModal({ metric, entry, canEnter, canReview, canComment, canAssign, contributors = [], history = [], onClose, onSave, onAssign, onAddComment }) {
   const form = METRIC_FORMS[metric.id];
   const initialVals = form ? parseMetricValue(entry.value) : {};
 
@@ -262,6 +331,23 @@ function MetricEntryModal({ metric, entry, canEnter, canReview, canComment, onCl
             </p>
           </div>
 
+          {/* Owner assignment (Admin) */}
+          {canAssign && (
+            <div className="form-group" style={{ marginBottom: 'var(--space-5)' }}>
+              <label className="form-label">Data owner</label>
+              <select
+                className="form-select"
+                value={entry.assignee || ''}
+                onChange={e => onAssign(e.target.value)}
+              >
+                <option value="">Unassigned</option>
+                {contributors.map(u => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Structured form OR simple input */}
           {form ? (
             <StructuredMetricForm
@@ -307,6 +393,28 @@ function MetricEntryModal({ metric, entry, canEnter, canReview, canComment, onCl
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Audit history for this metric */}
+          {history.length > 0 && (
+            <div style={{ marginTop: 'var(--space-5)' }}>
+              <h4 style={{ fontSize: 'var(--font-sm)', marginBottom: 'var(--space-3)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                <History size={14} /> History ({history.length})
+              </h4>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                {history.slice().reverse().slice(0, 8).map(ev => (
+                  <li key={ev.id} style={{ fontSize: 'var(--font-xs)', color: 'var(--neutral-600)', display: 'flex', gap: 'var(--space-2)' }}>
+                    <span style={{ color: 'var(--neutral-400)', whiteSpace: 'nowrap' }}>
+                      {new Date(ev.timestamp).toLocaleString()}
+                    </span>
+                    <span>
+                      <strong>{ev.actor?.name || 'Unknown'}</strong>{' '}
+                      {describeEvent(ev)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 

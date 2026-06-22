@@ -14,17 +14,18 @@ export const ROLES = [
 export const PERMISSIONS = {
   Admin: ['*'],
   Contributor: [
+    // 'data:view' (own) — sees only metrics assigned to them, no 'data:view-all'
     'data:view', 'data:enter', 'data:csv', 'data:edit-own',
     'report:write', 'comment:reply', 'comment:create', 'dashboard:view',
   ],
   Reviewer: [
-    'data:view', 'data:review', 'report:review', 'comment:create', 'dashboard:view',
+    'data:view', 'data:view-all', 'data:review', 'report:review', 'comment:create', 'dashboard:view',
   ],
   Approver: [
-    'data:view', 'report:view', 'report:approve', 'comment:create', 'dashboard:view',
+    'data:view', 'data:view-all', 'report:view', 'report:approve', 'comment:create', 'dashboard:view',
   ],
   ExternalAuditor: [
-    'data:view', 'report:view', 'audit:view', 'evidence:download', 'finding:create',
+    'data:view', 'data:view-all', 'report:view', 'audit:view', 'evidence:download', 'finding:create',
   ],
 };
 

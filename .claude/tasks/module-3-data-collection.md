@@ -33,8 +33,12 @@ manual), collect (manual/CSV/API), always validate, and route Data Owner → Rev
 
 ## Acceptance criteria
 
-- [ ] Each active metric can be assigned (auto-by-role or manual) to an owner.
-- [ ] Every value is validated; invalid data cannot be submitted.
-- [ ] Full status lifecycle works with correct role gating; reject returns to owner with comments.
-- [ ] All transitions and comments appear in the audit log.
-- [ ] CSV import still works; API import boundary exists. Lint passes.
+- [x] Each active metric can be assigned (auto-by-role or manual) to an owner. _(Owner column; Admin "Auto-assign" round-robin across Contributors; per-metric assignee select in the modal; `assignMetric`.)_
+- [x] Every value is validated; invalid data cannot be submitted. _(`validate()` blocks `handleSubmit`; structured + simple inputs via `validateMetricValue`/`validateStructuredForm`.)_
+- [x] Full status lifecycle works with correct role gating; reject returns to owner with comments. _(Footer actions gated by `can()`; reject → `rejected`, owner re-edits/resubmits; comments thread.)_
+- [x] All transitions and comments appear in the audit log. _(`setEntryStatus`/`assignMetric`/`addComment` call `logEvent`; per-metric History shown in the modal.)_
+- [x] CSV import still works; API import boundary exists. Lint passes. _(CSV untouched; `services/apiImport.js` stub + "Import via API" button; `npm run lint` green.)_
+
+> Scoped out of this task (deferred): a global, filterable audit-trail **view** (non-core Audit task)
+> and full per-assignee read-only enforcement of input fields (foundation is in place; review-only
+> roles already cannot persist changes since their action buttons are gated).
