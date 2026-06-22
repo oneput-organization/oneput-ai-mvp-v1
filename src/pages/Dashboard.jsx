@@ -1,25 +1,42 @@
 import { Link } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { useData } from '../contexts/DataContext';
+import { useUser } from '../contexts/UserContext';
+import { roleLabel } from '../data/permissions';
 import {
   Database,
   ClipboardCheck,
+  ClipboardList,
   Clock,
   CheckCircle2,
   ArrowRight,
   TrendingUp,
   MessageSquare,
-  Settings,
+  CalendarClock,
+  FileText,
+  History,
   Sparkles,
 } from 'lucide-react';
 
 export default function Dashboard() {
   const { company, settings } = useApp();
   const { stats, completionPercent, activeMetrics, dataEntries } = useData();
+  const { currentUser, can } = useUser();
 
   const greeting = company.name
     ? `Welcome back, ${company.name}`
     : 'Welcome to Oneput AI';
+
+  // Role-aware quick actions — show only what this role can act on.
+  const quickActions = [
+    { to: '/collection', icon: ClipboardCheck, label: 'Enter ESG Data', show: can('data:enter') },
+    { to: '/collection', icon: ClipboardList, label: 'Review Queue', show: can('data:review') },
+    { to: '/report', icon: FileText, label: 'Report Builder', show: can('report:write') || can('report:view') },
+    { to: '/chasing', icon: CalendarClock, label: 'Data Chasing', show: can('data:view-all') },
+    { to: '/chatbot', icon: MessageSquare, label: 'Ask Oneput AI', show: can('data:view') },
+    { to: '/audit', icon: History, label: 'Audit Trail', show: can('audit:view') },
+    { to: '/registry', icon: Database, label: 'Metrics Registry', show: can('data:view') },
+  ].filter(a => a.show);
 
   // Recent activity (mock + real)
   const recentActivity = [];
@@ -48,8 +65,9 @@ export default function Dashboard() {
         <div className="page-header-text">
           <h1>{greeting}</h1>
           <p>
+            You're viewing as <strong>{roleLabel(currentUser.role)}</strong>.{' '}
             {settings.framework
-              ? 'Your ESG reporting dashboard — track progress across all metrics.'
+              ? 'Track progress across your ESG metrics.'
               : 'Get started by selecting a reporting framework and entering your company details.'}
           </p>
         </div>
@@ -132,18 +150,11 @@ export default function Dashboard() {
             <h3 className="card-title">Quick Actions</h3>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            <Link to="/collection" className="btn btn-secondary w-full" style={{ justifyContent: 'flex-start' }}>
-              <ClipboardCheck size={16} /> Enter ESG Data
-            </Link>
-            <Link to="/registry" className="btn btn-secondary w-full" style={{ justifyContent: 'flex-start' }}>
-              <Database size={16} /> View Metrics Registry
-            </Link>
-            <Link to="/chatbot" className="btn btn-secondary w-full" style={{ justifyContent: 'flex-start' }}>
-              <MessageSquare size={16} /> Ask Oneput AI
-            </Link>
-            <Link to="/setup/framework" className="btn btn-secondary w-full" style={{ justifyContent: 'flex-start' }}>
-              <Settings size={16} /> Framework Settings
-            </Link>
+            {quickActions.map(action => (
+              <Link key={action.label} to={action.to} className="btn btn-secondary w-full" style={{ justifyContent: 'flex-start' }}>
+                <action.icon size={16} /> {action.label}
+              </Link>
+            ))}
           </div>
         </div>
       </div>

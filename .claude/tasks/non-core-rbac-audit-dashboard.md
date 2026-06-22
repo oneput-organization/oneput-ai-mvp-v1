@@ -39,9 +39,9 @@ Steps:
    - Skill: **`oneput-ui-kit`**, **`rbac-roles`**.
 
 Acceptance:
-- [ ] Every meaningful action is logged once, centrally, append-only.
-- [ ] Trail view filters by actor/action/target/date; gated to allowed roles.
-- [ ] Feeds the Module 6 evidence package; lint passes.
+- [x] Every meaningful action is logged once, centrally, append-only. _(`logEvent` in DataContext actions — data status/update/assign/comment, chase request/nudge/escalate, report generate/section/status/comment, export.create, report.publish.)_
+- [x] Trail view filters by actor/action/target/date; gated to allowed roles. _(`pages/audit/AuditLog.jsx` — action + actor filters + search, newest-first, read-only; route gated `audit:view` (Reviewer/Approver/ExternalAuditor/Admin).)_
+- [x] Feeds the Module 6 evidence package; lint passes. _(Evidence package draws from the same entry data; `npm run lint` green.)_
 
 ## Part C — Dashboard polish
 
@@ -56,5 +56,5 @@ Steps:
    - Skill: **`rbac-roles`**.
 
 Acceptance:
-- [ ] Dashboard is uncluttered and shows progress + status clearly.
-- [ ] View adapts to role; reads from `stats`; lint passes.
+- [x] Dashboard is uncluttered and shows progress + status clearly. _(Stat cards + overall progress bar from `stats`/`completionPercent`; recent activity from entries.)_
+- [x] View adapts to role; reads from `stats`; lint passes. _(Role chip in header; quick actions filtered by `can()` per role; `npm run lint` green.)_
