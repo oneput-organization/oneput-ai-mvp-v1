@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { useApp } from '../../contexts/AppContext';
+import { useUser } from '../../contexts/UserContext';
 import {
   LayoutDashboard,
   Settings,
@@ -9,6 +10,7 @@ import {
   MessageSquare,
   CalendarClock,
   FileText,
+  History,
   PanelLeftClose,
   PanelLeftOpen,
   Sparkles,
@@ -49,11 +51,23 @@ const navItems = [
       { to: '/report', icon: FileText, label: 'Report Builder', protected: true },
     ],
   },
+  {
+    section: 'Oversight',
+    items: [
+      { to: '/audit', icon: History, label: 'Audit Trail', protected: true, permission: 'audit:view' },
+    ],
+  },
 ];
 
 export default function Sidebar() {
   const { settings, toggleSidebar, isSetupComplete } = useApp();
+  const { can } = useUser();
   const collapsed = settings.sidebarCollapsed;
+
+  // Hide items the current role lacks permission for, then drop empty sections.
+  const visibleSections = navItems
+    .map(section => ({ ...section, items: section.items.filter(i => !i.permission || can(i.permission)) }))
+    .filter(section => section.items.length > 0);
 
   return (
     <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
@@ -65,7 +79,7 @@ export default function Sidebar() {
       </div>
 
       <nav className="sidebar-nav">
-        {navItems.map(section => (
+        {visibleSections.map(section => (
           <div key={section.section} className="sidebar-section">
             <div className="sidebar-section-title">{section.section}</div>
             {section.items.map(item => {

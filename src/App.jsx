@@ -16,6 +16,7 @@ import DataCollection from './pages/collection/DataCollection';
 import ChatbotPage from './pages/chatbot/ChatbotPage';
 import ChasingPanel from './pages/chatbot/ChasingPanel';
 import ReportBuilder from './pages/report/ReportBuilder';
+import AuditLog from './pages/audit/AuditLog';
 import SetupWizard from './pages/onboarding/SetupWizard';
 
 function AppLayout() {
@@ -55,6 +56,9 @@ function AppLayout() {
             } />
             <Route path="/report" element={
               <ProtectedRoute permission="data:view"><ReportBuilder /></ProtectedRoute>
+            } />
+            <Route path="/audit" element={
+              <ProtectedRoute permission="audit:view"><AuditLog /></ProtectedRoute>
             } />
             <Route path="/onboarding" element={<Navigate to="/" replace />} />
           </Routes>

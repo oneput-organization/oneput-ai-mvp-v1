@@ -19,10 +19,10 @@ export const PERMISSIONS = {
     'report:write', 'comment:reply', 'comment:create', 'dashboard:view',
   ],
   Reviewer: [
-    'data:view', 'data:view-all', 'data:review', 'report:review', 'comment:create', 'dashboard:view',
+    'data:view', 'data:view-all', 'data:review', 'report:review', 'comment:create', 'dashboard:view', 'audit:view',
   ],
   Approver: [
-    'data:view', 'data:view-all', 'report:view', 'report:approve', 'comment:create', 'dashboard:view',
+    'data:view', 'data:view-all', 'report:view', 'report:approve', 'comment:create', 'dashboard:view', 'audit:view',
   ],
   ExternalAuditor: [
     'data:view', 'data:view-all', 'report:view', 'audit:view', 'evidence:download', 'finding:create',
