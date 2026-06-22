@@ -52,3 +52,6 @@ Supporting library skills (load when relevant): `claude-api` (Module 4 real mode
    `git commit -m "<module/task>: <what changed>"`. One focused commit per completed task (or per
    meaningful step), only after lint passes and acceptance criteria are met — never commit broken code.
    End the commit message with the required `Co-Authored-By` trailer.
+8. **Record it as done in `PROGRESS.md`** — the single source of truth for completion. Tick the
+   task's acceptance criteria, set its row to `done` with the date + commit hash, and add a Log line.
+   See `PROGRESS.md` for the full Definition of Done.
