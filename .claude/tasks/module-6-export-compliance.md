@@ -28,7 +28,7 @@ disclosure/evidence package that traces every disclosed number back to platform 
 
 ## Acceptance criteria
 
-- [ ] Report exports to PDF and Word with all variables resolved.
-- [ ] Export is blocked/warned when backing data isn't approved or required metrics are missing.
-- [ ] Evidence package generated from platform data traces every number to an approved entry + actors.
-- [ ] Export/publish are audited; correct role gating; lint passes.
+- [x] Report exports to PDF and Word with all variables resolved. _(`exportReport(report, format, dataEntries)` in `services/exportReport.js`; PDF via hidden-iframe print, Word via `.doc` blob, HTML bonus; variables resolved at export.)_
+- [x] Export is blocked/warned when backing data isn't approved or required metrics are missing. _(`checkCompliance` checklist: missing data, unapproved disclosures, report sign-off; Publish disabled until ready, with a visible warning.)_
+- [x] Evidence package generated from platform data traces every number to an approved entry + actors. _(`downloadEvidence` → JSON: per-disclosure value, status, owner, timestamps, notes, comments. Never hand-assembled.)_
+- [x] Export/publish are audited; correct role gating; lint passes. _(`export.create` / `report.publish` logged; export+publish gated to `report:approve`, evidence to `evidence:download`; `npm run lint` green, build passes.)_

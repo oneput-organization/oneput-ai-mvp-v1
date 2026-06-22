@@ -102,11 +102,14 @@ pending → in-progress → submitted → under-review → approved
   resolve to `dataEntries[id].value` at render/export (missing → visible placeholder). Report and
   section status mirror the entry lifecycle; transitions/comments log to the audit trail
   (`report.generate`, `report.section.update`, `report.section.status`, `report.status`, `report.comment`).
+- **Export / EvidencePackage** — no stored entity; generated on demand by `services/exportReport.js`.
+  `exportReport(report, format, dataEntries)` resolves variables and emits PDF (print)/Word/HTML behind
+  one swappable boundary. `checkCompliance` gates publish (missing data + unapproved disclosures + report
+  sign-off). `downloadEvidence` emits a JSON package tracing each disclosed number to its entry (value,
+  status, owner, timestamps, notes, comments). Export/publish log `export.create` / `report.publish`.
 
 ## Entities to add (planned, not yet in code)
 
-These do not exist yet; define them following the same shape conventions when their module is built:
-
-- **Export / EvidencePackage** — generated artifact + manifest of source data references. (Module 6)
-
-See the matching skills in `.claude/skills/` for how to introduce each one.
+All core MVP entities are now implemented. Future, non-core additions (define following the same shape
+conventions when built): a stored audit-trail **view**, material topics, and real backend persistence
+replacing `localStorage`. See the matching skills in `.claude/skills/` for conventions.
