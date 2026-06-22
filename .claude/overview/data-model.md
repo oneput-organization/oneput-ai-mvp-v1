@@ -95,14 +95,18 @@ pending → in-progress → submitted → under-review → approved
   per owner by `AssistantContext.planRequests`. Chasing activity is logged to `oneput_assistantLog`
   (`{ id, ts, kind, ownerId, text }`). The model call (`respond`) and channel send (`notify`) are
   isolated in `services/assistant.js` behind one function each — no client-side API key.
+- **Report / ReportSection** (`oneput_reports`) — `report = { id, name, templateId, framework,
+  status, sections[], createdAt, updatedAt }`; `section = { id, title, body, status,
+  requiredMetricIds[], comments[] }`. Managed by `ReportContext`. Templates live in
+  `data/report-templates.js`. **Variable references** are `{{metric:<id>}}` tokens in `body` that
+  resolve to `dataEntries[id].value` at render/export (missing → visible placeholder). Report and
+  section status mirror the entry lifecycle; transitions/comments log to the audit trail
+  (`report.generate`, `report.section.update`, `report.section.status`, `report.status`, `report.comment`).
 
 ## Entities to add (planned, not yet in code)
 
 These do not exist yet; define them following the same shape conventions when their module is built:
 
-- **Report / ReportSection** — `{ id, templateId, title, sections[] }`; sections hold rich text +
-  variable references that resolve to metric values. (Report Builder, Module 5)
-- **Variable reference** — token in report text that pulls a metric `value` by `id`/`code`. (Module 5)
 - **Export / EvidencePackage** — generated artifact + manifest of source data references. (Module 6)
 
 See the matching skills in `.claude/skills/` for how to introduce each one.

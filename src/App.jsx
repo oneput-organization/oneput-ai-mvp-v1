@@ -3,6 +3,7 @@ import { AppProvider, useApp } from './contexts/AppContext';
 import { UserProvider } from './contexts/UserContext';
 import { DataProvider } from './contexts/DataContext';
 import { AssistantProvider } from './contexts/AssistantContext';
+import { ReportProvider } from './contexts/ReportContext';
 import ProtectedRoute from './components/routing/ProtectedRoute';
 import Sidebar from './components/layout/Sidebar';
 import TopBar from './components/layout/TopBar';
@@ -14,6 +15,7 @@ import MetricsRegistry from './pages/registry/MetricsRegistry';
 import DataCollection from './pages/collection/DataCollection';
 import ChatbotPage from './pages/chatbot/ChatbotPage';
 import ChasingPanel from './pages/chatbot/ChasingPanel';
+import ReportBuilder from './pages/report/ReportBuilder';
 import SetupWizard from './pages/onboarding/SetupWizard';
 
 function AppLayout() {
@@ -51,6 +53,9 @@ function AppLayout() {
             <Route path="/chasing" element={
               <ProtectedRoute permission="data:view-all"><ChasingPanel /></ProtectedRoute>
             } />
+            <Route path="/report" element={
+              <ProtectedRoute permission="data:view"><ReportBuilder /></ProtectedRoute>
+            } />
             <Route path="/onboarding" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
@@ -67,7 +72,9 @@ export default function App() {
         <UserProvider>
           <DataProvider>
             <AssistantProvider>
-              <AppLayout />
+              <ReportProvider>
+                <AppLayout />
+              </ReportProvider>
             </AssistantProvider>
           </DataProvider>
         </UserProvider>

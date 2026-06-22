@@ -26,7 +26,7 @@ platform, and pull metric values into the prose via variables.
 
 ## Acceptance criteria
 
-- [ ] User can generate a report from a standard template and edit sections in-app.
-- [ ] Numbers in the report come only from variable references resolving to real entries.
-- [ ] Section review/approval works with correct role gating and comments.
-- [ ] Report state persists; transitions are audited; lint passes.
+- [x] User can generate a report from a standard template and edit sections in-app. _("Generate GRI report" from `data/report-templates.js`; per-section textarea editor with insert-variable picker.)_
+- [x] Numbers in the report come only from variable references resolving to real entries. _(`{{metric:id}}` tokens resolve to `dataEntries[id].value`+unit in preview; missing → visible placeholder. No re-typed numbers.)_
+- [x] Section review/approval works with correct role gating and comments. _(Contributor writes (`report:write`); Reviewer approves/rejects sections (`report:review`); Approver approves/rejects the report (`report:approve`); per-section comments.)_
+- [x] Report state persists; transitions are audited; lint passes. _(`ReportContext` → `oneput_reports`; all transitions/comments call `logEvent`; `npm run lint` green, build passes.)_

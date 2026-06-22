@@ -8,6 +8,7 @@ import {
   ClipboardList,
   MessageSquare,
   CalendarClock,
+  FileText,
   PanelLeftClose,
   PanelLeftOpen,
   Sparkles,
@@ -40,6 +41,12 @@ const navItems = [
     items: [
       { to: '/chatbot', icon: MessageSquare, label: 'Oneput AI', protected: true },
       { to: '/chasing', icon: CalendarClock, label: 'Data Chasing', protected: true },
+    ],
+  },
+  {
+    section: 'Report',
+    items: [
+      { to: '/report', icon: FileText, label: 'Report Builder', protected: true },
     ],
   },
 ];
