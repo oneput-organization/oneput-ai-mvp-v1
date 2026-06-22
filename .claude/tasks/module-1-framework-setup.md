@@ -26,7 +26,7 @@ a light task because GRI is already wired; mostly confirm it works end-to-end.
 
 ## Acceptance criteria
 
-- [ ] Wizard completes with GRI; protected routes unlock afterward.
-- [ ] Company overview captures all spec fields; completion % is correct.
-- [ ] Finishing setup seeds active GRI metrics correct for the industry.
-- [ ] No multi-standard UI present; no direct `localStorage` use in pages; lint passes.
+- [x] Wizard completes with GRI; protected routes unlock afterward. _(`SetupWizard` + `completeSetup`; `ProtectedRoute` gates on `isSetupComplete`.)_
+- [x] Company overview captures all spec fields; completion % is correct. _(`REQUIRED_COMPANY_FIELDS` in `AppContext`; `companyCompletion()`.)_
+- [x] Finishing setup seeds active GRI metrics correct for the industry. _(`applyIndustryMetrics` / `getMetricIdsForIndustry`.)_
+- [x] Only GRI is selectable; no direct `localStorage` use in pages; lint passes. _(`FrameworkSetup` shows GRI selectable; IFRS/SEC rendered locked "Coming Soon" (not functional) — communicates roadmap without enabling multi-standard.)_

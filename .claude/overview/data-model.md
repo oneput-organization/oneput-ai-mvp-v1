@@ -45,6 +45,13 @@ reportingPeriodStart, reportingPeriodEnd, country`.
 `'gri-2021'`. The `framework` field is kept as an array so additional standards (IFRS S1/S2, SEC 56-1)
 can be added later without changing the entry shape, but multi-standard support is out of scope now.
 
+**Registry source.** The bundled `GRI_METRICS` is real GRI 2021 data but a representative subset.
+`services/griRegistry.js` `loadGriMetrics()` is the source boundary: it loads the full standard from
+`VITE_GRI_REGISTRY_API_URL` when set, else uses the bundled subset. DataContext merges this base with
+Admin-defined **custom metrics** (`oneput_customMetrics`, tagged `custom: true`) into `allMetrics`;
+all screens read `allMetrics`, never the static import. Admin CRUD: `addMetric` / `updateMetric` /
+`deleteMetric` (custom only; base registry is read-only), audited as `metric.create|update|delete`.
+
 ## Industry mapping (`data/gri-industry-mapping.js`)
 
 - `UNIVERSAL_METRIC_IDS` — always required (GRI 2 series)

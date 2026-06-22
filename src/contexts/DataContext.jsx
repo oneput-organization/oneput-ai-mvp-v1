@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useCallback, useRef, useEffect } f
 import { storage } from '../utils/storage';
 import { GRI_METRICS } from '../data/gri-metrics';
 import { getMetricIdsForIndustry, isMetricRequired } from '../data/gri-industry-mapping';
+import { loadGriMetrics } from '../services/griRegistry';
 import { useApp } from './AppContext';
 import { useUser } from './UserContext';
 
@@ -32,6 +33,23 @@ export function DataProvider({ children }) {
   const entriesRef = useRef(dataEntries);
   useEffect(() => { entriesRef.current = dataEntries; }, [dataEntries]);
 
+  // GRI registry: bundled subset by default; replaced by the real standard if an API is configured.
+  const [baseMetrics, setBaseMetrics] = useState(GRI_METRICS);
+  const [registrySource, setRegistrySource] = useState('bundled');
+  useEffect(() => {
+    let active = true;
+    loadGriMetrics().then(({ metrics, source }) => {
+      if (!active) return;
+      setBaseMetrics(metrics);
+      setRegistrySource(source);
+    });
+    return () => { active = false; };
+  }, []);
+
+  // Admin-defined custom GRI metrics, merged with the base registry.
+  const [customMetrics, setCustomMetricsState] = useState(() => storage.get('customMetrics', []));
+  const allMetrics = [...baseMetrics, ...customMetrics];
+
   const setActiveMetricIds = (ids) => {
     setActiveMetricIdsState(ids);
     storage.set('activeMetricIds', ids);
@@ -45,7 +63,7 @@ export function DataProvider({ children }) {
   };
 
   const setAllMetricsActive = (active) => {
-    const ids = active ? GRI_METRICS.map(m => m.id) : [];
+    const ids = active ? allMetrics.map(m => m.id) : [];
     setActiveMetricIds(ids);
   };
 
@@ -142,8 +160,45 @@ export function DataProvider({ children }) {
     setActiveMetricIds(ids);
   }, []);
 
+  // ── Admin metric management (custom GRI metrics; base registry is read-only) ──
+  const addMetric = useCallback((metric) => {
+    const id = `custom-${Date.now()}`;
+    const created = { ...metric, id, framework: ['GRI'], custom: true };
+    setCustomMetricsState(prev => {
+      const next = [...prev, created];
+      storage.set('customMetrics', next);
+      return next;
+    });
+    // Activate it so it shows up in collection immediately.
+    setActiveMetricIdsState(prev => {
+      const next = [...prev, id];
+      storage.set('activeMetricIds', next);
+      return next;
+    });
+    logEvent('metric.create', { type: 'metric', id, code: created.code }, null, created.code);
+    return created;
+  }, [logEvent]);
+
+  const updateMetric = useCallback((id, patch) => {
+    setCustomMetricsState(prev => {
+      const next = prev.map(m => (m.id === id ? { ...m, ...patch } : m));
+      storage.set('customMetrics', next);
+      return next;
+    });
+    logEvent('metric.update', { type: 'metric', id }, null, null);
+  }, [logEvent]);
+
+  const deleteMetric = useCallback((id) => {
+    setCustomMetricsState(prev => {
+      const next = prev.filter(m => m.id !== id);
+      storage.set('customMetrics', next);
+      return next;
+    });
+    logEvent('metric.delete', { type: 'metric', id }, null, null);
+  }, [logEvent]);
+
   // Computed stats
-  const activeMetrics = GRI_METRICS.filter(m => activeMetricIds.includes(m.id)).map(m => ({
+  const activeMetrics = allMetrics.filter(m => activeMetricIds.includes(m.id)).map(m => ({
     ...m,
     required: isMetricRequired(m.id, company.industry),
   }));
@@ -178,6 +233,12 @@ export function DataProvider({ children }) {
       toggleMetricActive,
       setAllMetricsActive,
       applyIndustryMetrics,
+      allMetrics,
+      customMetrics,
+      registrySource,
+      addMetric,
+      updateMetric,
+      deleteMetric,
       activeMetrics,
       dataEntries,
       updateDataEntry,

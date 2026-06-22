@@ -27,6 +27,6 @@ yearly changes). Multi-standard mapping is **deferred** — skip it.
 
 ## Acceptance criteria
 
-- [ ] Admin can add/edit a GRI metric with validation rules; non-admins cannot.
-- [ ] Custom metrics persist and appear in activation + data collection.
-- [ ] No multi-standard UI; stable `id`s preserved; lint passes; data-model doc updated if schema changed.
+- [x] Admin can add/edit a GRI metric with validation rules; non-admins cannot. _(`MetricForm` modal gated by `can('metric:manage')` (Admin via `*`); `addMetric`/`updateMetric`/`deleteMetric` in DataContext, audited.)_
+- [x] Custom metrics persist and appear in activation + data collection. _(`oneput_customMetrics` merged into `allMetrics`; new metrics auto-activated and flow into registry/collection/reports.)_
+- [x] No multi-standard UI; stable `id`s preserved; lint passes; data-model doc updated if schema changed. _(Custom ids `custom-<ts>` immutable; bundled GRI subset can be replaced by the real standard via `loadGriMetrics()` / `VITE_GRI_REGISTRY_API_URL`; data-model updated; lint green.)_
