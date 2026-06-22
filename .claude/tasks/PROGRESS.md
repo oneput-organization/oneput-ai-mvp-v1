@@ -22,8 +22,8 @@ Status values: `not-started` · `in-progress` · `done`.
 | `module-4-chatbot.md` | 4 Chatbot | done | 2026-06-22 | 767184e |
 | `module-5-report-builder.md` | 5 Report | done | 2026-06-22 | f66514f |
 | `module-6-export-compliance.md` | 6 Export | done | 2026-06-22 | 84b6662 |
-| `non-core-rbac-audit-dashboard.md` (B: Audit) | non-core | not-started | — | — |
-| `non-core-rbac-audit-dashboard.md` (C: Dashboard) | non-core | not-started | — | — |
+| `non-core-rbac-audit-dashboard.md` (B: Audit) | non-core | done | 2026-06-22 | 55c9191 |
+| `non-core-rbac-audit-dashboard.md` (C: Dashboard) | non-core | done | 2026-06-22 | 1128106 |
 
 ## Log
 
@@ -34,3 +34,5 @@ _(append one line per completed task/step: `YYYY-MM-DD — <task> — <what ship
 - 2026-06-22 — Module 4 — shared respond()/notify() boundaries (Claude via backend; grounded fallback), data chasing (requests/nudge/escalate) — 767184e
 - 2026-06-22 — Module 5 — report builder: GRI template, variable references, live resolution, section/report review (audited) — f66514f
 - 2026-06-22 — Module 6 — export (PDF/Word) + compliance checklist + evidence package; publish (audited, gated) — 84b6662
+- 2026-06-22 — Non-core B — audit trail view (read-only, filterable, role-gated) — 55c9191
+- 2026-06-22 — Non-core C — role-aware dashboard polish — 1128106
