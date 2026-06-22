@@ -17,6 +17,27 @@ export function ReportProvider({ children }) {
 
   const [reports, setReportsState] = useState(() => storage.get('reports', []));
 
+  // Templates: the bundled GRI template + Admin-defined custom templates.
+  const [customTemplates, setCustomTemplatesState] = useState(() => storage.get('reportTemplates', []));
+  const allTemplates = [GRI_REPORT_TEMPLATE, ...customTemplates];
+
+  const addTemplate = useCallback(({ name }) => {
+    const tpl = { id: `tpl-${Date.now()}`, name, framework: 'GRI', sections: [], custom: true };
+    setCustomTemplatesState(prev => { const next = [...prev, tpl]; storage.set('reportTemplates', next); return next; });
+    logEvent('template.create', { type: 'template', id: tpl.id }, null, name);
+    return tpl;
+  }, [logEvent]);
+
+  const updateTemplate = useCallback((id, patch) => {
+    setCustomTemplatesState(prev => { const next = prev.map(t => (t.id === id ? { ...t, ...patch } : t)); storage.set('reportTemplates', next); return next; });
+    logEvent('template.update', { type: 'template', id }, null, null);
+  }, [logEvent]);
+
+  const deleteTemplate = useCallback((id) => {
+    setCustomTemplatesState(prev => { const next = prev.filter(t => t.id !== id); storage.set('reportTemplates', next); return next; });
+    logEvent('template.delete', { type: 'template', id }, null, null);
+  }, [logEvent]);
+
   const persist = useCallback((next) => {
     setReportsState(next);
     storage.set('reports', next);
@@ -103,6 +124,11 @@ export function ReportProvider({ children }) {
   return (
     <ReportContext.Provider value={{
       reports,
+      allTemplates,
+      customTemplates,
+      addTemplate,
+      updateTemplate,
+      deleteTemplate,
       generateReport,
       updateSection,
       setSectionStatus,

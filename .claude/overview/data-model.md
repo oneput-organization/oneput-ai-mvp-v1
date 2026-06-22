@@ -107,7 +107,10 @@ pending → in-progress → submitted → under-review → approved
   status, sections[], createdAt, updatedAt }`; `section = { id, title, body, status,
   requiredMetricIds[], comments[] }`. Managed by `ReportContext`. Templates live in
   `data/report-templates.js`. **Variable references** are `{{metric:<id>}}` tokens in `body` that
-  resolve to `dataEntries[id].value` at render/export (missing → visible placeholder). Report and
+  resolve to `dataEntries[id].value` at render/export (missing → visible placeholder). Reports
+  generate from any template; the bundled GRI template lives in `data/report-templates.js` and Admin
+  custom templates (`oneput_reportTemplates`) are managed on the Report Templates page
+  (`template.create` / `template.update` / `template.delete` audited). Report and
   section status mirror the entry lifecycle; transitions/comments log to the audit trail
   (`report.generate`, `report.section.update`, `report.section.status`, `report.status`, `report.comment`).
 - **Export / EvidencePackage** — no stored entity; generated on demand by `services/exportReport.js`.

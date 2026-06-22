@@ -10,6 +10,7 @@ import {
   MessageSquare,
   CalendarClock,
   FileText,
+  LayoutTemplate,
   History,
   Layers,
   Users as UsersIcon,
@@ -52,6 +53,7 @@ const navItems = [
     section: 'Report',
     items: [
       { to: '/report', icon: FileText, label: 'Report Builder', protected: true },
+      { to: '/report/templates', icon: LayoutTemplate, label: 'Templates', protected: true, permission: 'template:manage' },
     ],
   },
   {

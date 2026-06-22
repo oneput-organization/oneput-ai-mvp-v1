@@ -16,6 +16,7 @@ import DataCollection from './pages/collection/DataCollection';
 import ChatbotPage from './pages/chatbot/ChatbotPage';
 import ChasingPanel from './pages/chatbot/ChasingPanel';
 import ReportBuilder from './pages/report/ReportBuilder';
+import TemplatesAdmin from './pages/report/TemplatesAdmin';
 import MaterialTopics from './pages/registry/MaterialTopics';
 import AuditLog from './pages/audit/AuditLog';
 import Findings from './pages/audit/Findings';
@@ -59,6 +60,9 @@ function AppLayout() {
             } />
             <Route path="/report" element={
               <ProtectedRoute permission="data:view"><ReportBuilder /></ProtectedRoute>
+            } />
+            <Route path="/report/templates" element={
+              <ProtectedRoute permission="template:manage"><TemplatesAdmin /></ProtectedRoute>
             } />
             <Route path="/topics" element={
               <ProtectedRoute permission="metric:manage"><MaterialTopics /></ProtectedRoute>

@@ -38,7 +38,7 @@ function ResolvedBody({ body, dataEntries }) {
 }
 
 export default function ReportBuilder() {
-  const { reports, generateReport, updateSection, setSectionStatus, addSectionComment, setReportStatus, deleteReport } = useReports();
+  const { reports, allTemplates, generateReport, updateSection, setSectionStatus, addSectionComment, setReportStatus, deleteReport } = useReports();
   const { dataEntries, logEvent } = useData();
   const { can, users } = useUser();
 
@@ -50,10 +50,12 @@ export default function ReportBuilder() {
   const canEvidence = can('evidence:download');   // External Auditor / Admin
 
   const [selectedId, setSelectedId] = useState(reports[0]?.id || null);
+  const [templateId, setTemplateId] = useState(allTemplates[0]?.id || null);
   const report = reports.find(r => r.id === selectedId) || reports[0] || null;
 
   const handleGenerate = () => {
-    const r = generateReport();
+    const tpl = allTemplates.find(t => t.id === templateId) || allTemplates[0];
+    const r = generateReport(tpl);
     setSelectedId(r.id);
   };
 
@@ -64,11 +66,16 @@ export default function ReportBuilder() {
           <h1>Report Builder</h1>
           <p>Generate a GRI-compliant report and pull collected metric values into the prose.</p>
         </div>
-        <div className="page-header-actions">
+        <div className="page-header-actions" style={{ gap: 'var(--space-2)' }}>
           {canWrite && (
-            <button className="btn btn-primary" onClick={handleGenerate}>
-              <Plus size={16} /> Generate GRI report
-            </button>
+            <>
+              <select className="form-select" value={templateId || ''} onChange={e => setTemplateId(e.target.value)} style={{ height: 36, maxWidth: 240 }}>
+                {allTemplates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+              <button className="btn btn-primary" onClick={handleGenerate}>
+                <Plus size={16} /> Generate report
+              </button>
+            </>
           )}
         </div>
       </div>
