@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useApp } from '../../contexts/AppContext';
-import { GRI_METRICS } from '../../data/gri-metrics';
+import { respond } from '../../services/assistant';
 import {
   Send,
   Sparkles,
@@ -9,82 +9,19 @@ import {
   Trash2,
 } from 'lucide-react';
 
-// Reuse the response generator
-function generateResponse(input, { stats, activeMetrics, dataEntries, company }) {
-  const lower = input.toLowerCase();
-
-  if (lower.includes('progress') || lower.includes('status') || lower.includes('how are we doing')) {
-    const pct = stats.totalMetrics > 0 ? Math.round((stats.approved / stats.totalMetrics) * 100) : 0;
-    return `📊 **Here's your current progress:**\n\n• **${stats.totalMetrics}** active metrics\n• **${stats.collected}** data points collected\n• **${stats.pendingReview}** pending review\n• **${stats.approved}** approved (${pct}%)\n• **${stats.rejected || 0}** rejected\n\n${pct < 50 ? "You're still in the early stages. Keep going! 💪" : pct < 100 ? "Great progress! You're over halfway there. 🎯" : "All metrics approved! You're ready to generate your report. 🎉"}`;
-  }
-
-  if (lower.includes('pending') || lower.includes('what\'s left') || lower.includes('remaining') || lower.includes('todo')) {
-    const pending = activeMetrics.filter(m => {
-      const entry = dataEntries[m.id];
-      return !entry || entry.status === 'pending';
-    });
-    if (pending.length === 0) return "✅ No pending metrics! All data has been entered.";
-    const list = pending.slice(0, 8).map(m => `• **${m.code}** — ${m.name}`).join('\n');
-    return `📋 **${pending.length} metrics are still pending:**\n\n${list}${pending.length > 8 ? `\n• ...and ${pending.length - 8} more` : ''}\n\nWould you like me to help you fill in any of these?`;
-  }
-
-  if (lower.includes('help') || lower.includes('explain') || lower.includes('what is')) {
-    const metric = GRI_METRICS.find(m =>
-      lower.includes(m.code.toLowerCase()) ||
-      lower.includes(m.name.toLowerCase().substring(0, 20))
-    );
-    if (metric) {
-      return `📖 **${metric.code} — ${metric.name}**\n\n${metric.description}\n\n• **Category:** ${metric.category}\n• **Unit:** ${metric.unit}\n• **Data type:** ${metric.dataType}`;
-    }
-  }
-
-  if (lower.includes('environment') || lower.includes('emission') || lower.includes('carbon') || lower.includes('energy')) {
-    const envMetrics = activeMetrics.filter(m => m.category === 'Environmental');
-    const collected = envMetrics.filter(m => dataEntries[m.id]?.value).length;
-    return `🌱 **Environmental Metrics:**\n\n• **${envMetrics.length}** tracked, **${collected}** collected\n• Key areas: Energy, GHG Emissions, Water, Waste`;
-  }
-
-  if (lower.includes('social') || lower.includes('employee') || lower.includes('safety')) {
-    const socMetrics = activeMetrics.filter(m => m.category === 'Social');
-    const collected = socMetrics.filter(m => dataEntries[m.id]?.value).length;
-    return `👥 **Social Metrics:**\n\n• **${socMetrics.length}** tracked, **${collected}** collected\n• Key areas: Employment, Health & Safety, Training, Diversity`;
-  }
-
-  if (lower.includes('governance') || lower.includes('corruption')) {
-    const govMetrics = activeMetrics.filter(m => m.category === 'Governance');
-    const collected = govMetrics.filter(m => dataEntries[m.id]?.value).length;
-    return `🏛️ **Governance Metrics:**\n\n• **${govMetrics.length}** tracked, **${collected}** collected\n• Key areas: General Disclosures, Anti-corruption`;
-  }
-
-  if (lower.includes('gri') || lower.includes('framework')) {
-    return `📜 **GRI Standards 2021** — The world's most widely used sustainability reporting framework. Your registry includes **${activeMetrics.length}** key disclosures.`;
-  }
-
-  if (lower.includes('hello') || lower.includes('hi') || lower.includes('hey') || lower === 'start') {
-    return `👋 Hi ${company.name || 'there'}! I'm **Oneput AI**. Ask me about progress, pending metrics, or any GRI disclosure!`;
-  }
-
-  if (lower.includes('remind') || lower.includes('nudge')) {
-    return `📨 **Reminder noted!** In the full version, I'll send automated reminders via LINE, email, or Slack. _Coming soon!_`;
-  }
-
-  if (lower.includes('csv') || lower.includes('upload') || lower.includes('import')) {
-    return `📄 **CSV Import:** Go to Data Collection → Import CSV. Download the template first for correct formatting.`;
-  }
-
-  return `I can help with:\n• **"What's our progress?"** — Stats\n• **"Show pending metrics"** — What needs data\n• **"Help with GRI 305-1"** — Metric details\n• **"Environmental overview"** — Category info\n\nJust ask! 🤖`;
-}
+const nowTime = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+const newId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 
 export default function ChatbotPage() {
   const { stats, activeMetrics, dataEntries } = useData();
-  const { company } = useApp();
+  const { company, settings } = useApp();
 
   const [conversations, setConversations] = useState([
     {
       id: '1',
       title: 'ESG Progress Check',
       messages: [
-        { id: '1', type: 'bot', text: "👋 Welcome to **Oneput AI** — your full-page ESG assistant!\n\nI can help you track progress, explain GRI metrics, and guide your data collection process.\n\nWhat would you like to know?", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
+        { id: '1', type: 'bot', text: "👋 Welcome to **Oneput AI** — your full-page ESG assistant!\n\nI can help you track progress, explain GRI metrics, and chase data owners.\n\nWhat would you like to know?", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
       ],
     },
   ]);
@@ -99,41 +36,25 @@ export default function ChatbotPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [activeConv?.messages, isTyping]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim() || isTyping) return;
 
-    const userMsg = {
-      id: Date.now().toString(),
-      type: 'user',
-      text: input,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
+    const userMsg = { id: newId(), type: 'user', text: input, time: nowTime() };
 
+    const history = [...(activeConv?.messages || []), userMsg];
+    const botTime = nowTime();
     setConversations(prev => prev.map(c =>
-      c.id === activeConvId
-        ? { ...c, messages: [...c.messages, userMsg] }
-        : c
+      c.id === activeConvId ? { ...c, messages: history } : c
     ));
-
-    const query = input;
     setInput('');
     setIsTyping(true);
 
-    setTimeout(() => {
-      const response = generateResponse(query, { stats, activeMetrics, dataEntries, company });
-      const botMsg = {
-        id: (Date.now() + 1).toString(),
-        type: 'bot',
-        text: response,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
-      setConversations(prev => prev.map(c =>
-        c.id === activeConvId
-          ? { ...c, messages: [...c.messages, botMsg] }
-          : c
-      ));
-      setIsTyping(false);
-    }, 800 + Math.random() * 800);
+    const { text } = await respond(history, { company, settings, stats, activeMetrics, dataEntries });
+    const botMsg = { id: `${userMsg.id}-bot`, type: 'bot', text, time: botTime };
+    setConversations(prev => prev.map(c =>
+      c.id === activeConvId ? { ...c, messages: [...c.messages, botMsg] } : c
+    ));
+    setIsTyping(false);
   };
 
   const newConversation = () => {
@@ -161,7 +82,7 @@ export default function ChatbotPage() {
     "Environmental overview",
     "Governance overview",
     "Help with GRI 305-1",
-    "How to import CSV?",
+    "Chase the data owners",
   ];
 
   const renderText = (text) => {

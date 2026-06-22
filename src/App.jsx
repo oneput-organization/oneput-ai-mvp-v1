@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider, useApp } from './contexts/AppContext';
 import { UserProvider } from './contexts/UserContext';
 import { DataProvider } from './contexts/DataContext';
+import { AssistantProvider } from './contexts/AssistantContext';
 import ProtectedRoute from './components/routing/ProtectedRoute';
 import Sidebar from './components/layout/Sidebar';
 import TopBar from './components/layout/TopBar';
@@ -12,6 +13,7 @@ import CompanyProfile from './pages/setup/CompanyProfile';
 import MetricsRegistry from './pages/registry/MetricsRegistry';
 import DataCollection from './pages/collection/DataCollection';
 import ChatbotPage from './pages/chatbot/ChatbotPage';
+import ChasingPanel from './pages/chatbot/ChasingPanel';
 import SetupWizard from './pages/onboarding/SetupWizard';
 
 function AppLayout() {
@@ -46,6 +48,9 @@ function AppLayout() {
             <Route path="/chatbot" element={
               <ProtectedRoute permission="data:view"><ChatbotPage /></ProtectedRoute>
             } />
+            <Route path="/chasing" element={
+              <ProtectedRoute permission="data:view-all"><ChasingPanel /></ProtectedRoute>
+            } />
             <Route path="/onboarding" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
@@ -61,7 +66,9 @@ export default function App() {
       <AppProvider>
         <UserProvider>
           <DataProvider>
-            <AppLayout />
+            <AssistantProvider>
+              <AppLayout />
+            </AssistantProvider>
           </DataProvider>
         </UserProvider>
       </AppProvider>

@@ -37,8 +37,8 @@ owes, chases on schedule, escalates late items, explains metrics, and reports gr
 
 ## Acceptance criteria
 
-- [ ] One shared responder module; no duplicated `generateResponse`.
-- [ ] Assistant answers from real Claude, grounded in context, never inventing numbers.
-- [ ] It can create data requests, run a (simulated) chasing schedule, nudge, and escalate.
-- [ ] Model call + channel sending are each behind a single swappable function; no client-side API key.
-- [ ] Existing chat UI intact; lint passes.
+- [x] One shared responder module; no duplicated `generateResponse`. _(`services/assistant.js` `respond()`; both `ChatWindow` and `ChatbotPage` import it; old inline copies removed.)_
+- [x] Assistant answers from real Claude, grounded in context, never inventing numbers. _(System prompt + tool schemas + grounded context summary; calls backend at `VITE_ASSISTANT_API_URL` with `claude-opus-4-8` + adaptive thinking. **MVP note:** with no backend configured it uses a grounded local engine — stand up the proxy + set the env var to enable real Claude.)_
+- [x] It can create data requests, run a (simulated) chasing schedule, nudge, and escalate. _(`AssistantContext` + Data Chasing page: plan per-owner requests, Run chase, Nudge, Escalate; auto-prunes completed.)_
+- [x] Model call + channel sending are each behind a single swappable function; no client-side API key. _(`respond()` and `notify()` boundaries; backends via `VITE_ASSISTANT_API_URL` / `VITE_NOTIFY_API_URL`; no key in client.)_
+- [x] Existing chat UI intact; lint passes. _(Chat UI unchanged; `npm run lint` green, build passes.)_

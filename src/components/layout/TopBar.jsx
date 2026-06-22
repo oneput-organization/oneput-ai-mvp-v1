@@ -13,6 +13,7 @@ const breadcrumbMap = {
   '/registry': 'Metrics Registry',
   '/collection': 'Data Collection',
   '/chatbot': 'Oneput AI',
+  '/chasing': 'Data Chasing',
 };
 
 const sectionMap = {
@@ -22,6 +23,7 @@ const sectionMap = {
   '/registry': 'Data Collection',
   '/collection': 'Data Collection',
   '/chatbot': 'AI Assistant',
+  '/chasing': 'AI Assistant',
 };
 
 export default function TopBar() {

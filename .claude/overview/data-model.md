@@ -89,7 +89,12 @@ pending → in-progress → submitted → under-review → approved
 - **Assignment** — modelled as the `assignee` (User id) on each data entry; set via `assignMetric`.
 - **AuditEvent** (`oneput_auditEvents`) — `{ id, actor, action, target, before, after, timestamp }`.
   Append-only, written by `logEvent` from DataContext actions (`data.status`, `data.update`,
-  `data.assign`, `comment.add`). Trail **view** (filterable timeline) is still to build — non-core Audit task.
+  `data.assign`, `comment.add`) and by chasing (`chase.request`, `chase.nudge`, `chase.escalate`).
+  Trail **view** (filterable timeline) is still to build — non-core Audit task.
+- **DataRequest** (`oneput_dataRequests`) — `{ id, ownerId, metricIds[], dueDate, createdAt }`. Built
+  per owner by `AssistantContext.planRequests`. Chasing activity is logged to `oneput_assistantLog`
+  (`{ id, ts, kind, ownerId, text }`). The model call (`respond`) and channel send (`notify`) are
+  isolated in `services/assistant.js` behind one function each — no client-side API key.
 
 ## Entities to add (planned, not yet in code)
 
@@ -99,6 +104,5 @@ These do not exist yet; define them following the same shape conventions when th
   variable references that resolve to metric values. (Report Builder, Module 5)
 - **Variable reference** — token in report text that pulls a metric `value` by `id`/`code`. (Module 5)
 - **Export / EvidencePackage** — generated artifact + manifest of source data references. (Module 6)
-- **DataRequest / ChaseSchedule** — what the AI asks for, from whom, and when it follows up. (Module 4)
 
 See the matching skills in `.claude/skills/` for how to introduce each one.

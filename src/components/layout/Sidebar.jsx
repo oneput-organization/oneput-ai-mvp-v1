@@ -7,6 +7,7 @@ import {
   Database,
   ClipboardList,
   MessageSquare,
+  CalendarClock,
   PanelLeftClose,
   PanelLeftOpen,
   Sparkles,
@@ -38,6 +39,7 @@ const navItems = [
     section: 'AI Assistant',
     items: [
       { to: '/chatbot', icon: MessageSquare, label: 'Oneput AI', protected: true },
+      { to: '/chasing', icon: CalendarClock, label: 'Data Chasing', protected: true },
     ],
   },
 ];
