@@ -18,7 +18,7 @@ Status values: `not-started` · `in-progress` · `done`.
 | `module-1-framework-setup.md` | 1 Setup | not-started (built; verify only) | — | — |
 | `module-2-metrics-registry.md` | 2 Registry | not-started (built; Admin edit left) | — | — |
 | `non-core-rbac-audit-dashboard.md` (A: RBAC) | non-core | done | 2026-06-22 | 812c906 |
-| `module-3-data-collection.md` | 3 Collection | not-started | — | — |
+| `module-3-data-collection.md` | 3 Collection | done | 2026-06-22 | e5cd420 |
 | `module-4-chatbot.md` | 4 Chatbot | not-started | — | — |
 | `module-5-report-builder.md` | 5 Report | not-started | — | — |
 | `module-6-export-compliance.md` | 6 Export | not-started | — | — |
@@ -30,3 +30,4 @@ Status values: `not-started` · `in-progress` · `done`.
 _(append one line per completed task/step: `YYYY-MM-DD — <task> — <what shipped> — <commit>`)_
 
 - 2026-06-22 — RBAC (Part A) — roles + permission matrix + UserContext + route/action gating; lint baseline fixed — 812c906
+- 2026-06-22 — Module 3 — assignment (auto + manual), audited Owner→Reviewer→Approved flow, audit trail + logEvent, API import boundary — e5cd420
