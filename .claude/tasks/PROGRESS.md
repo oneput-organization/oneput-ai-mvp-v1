@@ -15,8 +15,8 @@ Status values: `not-started` · `in-progress` · `done`.
 
 | Task file | Module | Status | Done date | Commit |
 |-----------|--------|--------|-----------|--------|
-| `module-1-framework-setup.md` | 1 Setup | not-started (built; verify only) | — | — |
-| `module-2-metrics-registry.md` | 2 Registry | not-started (built; Admin edit left) | — | — |
+| `module-1-framework-setup.md` | 1 Setup | done (GRI verified) | 2026-06-22 | 706e13c |
+| `module-2-metrics-registry.md` | 2 Registry | done (Admin editor + GRI source) | 2026-06-22 | 706e13c |
 | `non-core-rbac-audit-dashboard.md` (A: RBAC) | non-core | done | 2026-06-22 | 812c906 |
 | `module-3-data-collection.md` | 3 Collection | done | 2026-06-22 | e5cd420 |
 | `module-4-chatbot.md` | 4 Chatbot | done | 2026-06-22 | 767184e |
@@ -36,3 +36,4 @@ _(append one line per completed task/step: `YYYY-MM-DD — <task> — <what ship
 - 2026-06-22 — Module 6 — export (PDF/Word) + compliance checklist + evidence package; publish (audited, gated) — 84b6662
 - 2026-06-22 — Non-core B — audit trail view (read-only, filterable, role-gated) — 55c9191
 - 2026-06-22 — Non-core C — role-aware dashboard polish — 1128106
+- 2026-06-22 — Modules 1 & 2 — GRI registry source boundary (API-ready) + Admin metric editor; GRI-only verified — 706e13c
