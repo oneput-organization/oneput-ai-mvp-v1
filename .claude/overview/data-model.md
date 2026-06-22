@@ -92,7 +92,8 @@ pending → in-progress → submitted → under-review → approved
 
 - **User** (`oneput_users` + `oneput_currentUser`) — `{ id, name, email, role }`,
   `role ∈ {Admin, Contributor, Reviewer, Approver, ExternalAuditor}`. Managed by `UserContext`;
-  permissions in `data/permissions.js` (`can(role, perm)`).
+  permissions in `data/permissions.js` (`can(role, perm)`). Admin manages users via
+  `addUser`/`updateUser`/`removeUser` (User Management page); `user.create`/`role.change` audited.
 - **Assignment** — modelled as the `assignee` (User id) on each data entry; set via `assignMetric`.
 - **AuditEvent** (`oneput_auditEvents`) — `{ id, actor, action, target, before, after, timestamp }`.
   Append-only, written by `logEvent` from DataContext actions (`data.status`, `data.update`,
@@ -114,6 +115,10 @@ pending → in-progress → submitted → under-review → approved
   one swappable boundary. `checkCompliance` gates publish (missing data + unapproved disclosures + report
   sign-off). `downloadEvidence` emits a JSON package tracing each disclosed number to its entry (value,
   status, owner, timestamps, notes, comments). Export/publish log `export.create` / `report.publish`.
+- **Finding** (`oneput_findings`) — `{ id, author, text, severity, scope, status, createdAt }`.
+  External Auditor logs observations via `addFinding` (Findings page); `finding.create` / `finding.status` audited.
+- **MaterialTopic** (`oneput_materialTopics`) — `{ id, name, description, metricIds[] }`. Admin groups
+  metrics into topics (Material Topics page); `topic.create` / `topic.update` / `topic.delete` audited.
 
 ## Entities to add (planned, not yet in code)
 

@@ -15,7 +15,10 @@ const breadcrumbMap = {
   '/chatbot': 'Oneput AI',
   '/chasing': 'Data Chasing',
   '/report': 'Report Builder',
+  '/topics': 'Material Topics',
   '/audit': 'Audit Trail',
+  '/findings': 'Findings',
+  '/users': 'User Management',
 };
 
 const sectionMap = {
@@ -27,7 +30,10 @@ const sectionMap = {
   '/chatbot': 'AI Assistant',
   '/chasing': 'AI Assistant',
   '/report': 'Report',
+  '/topics': 'Data Collection',
   '/audit': 'Oversight',
+  '/findings': 'Oversight',
+  '/users': 'Administration',
 };
 
 export default function TopBar() {

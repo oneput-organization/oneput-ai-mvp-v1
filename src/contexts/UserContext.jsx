@@ -35,6 +35,27 @@ export function UserProvider({ children }) {
   // Bound to the current user's role — gate UI/actions with this.
   const can = useCallback((perm) => canForRole(currentUser?.role, perm), [currentUser]);
 
+  // ── Admin user management ──
+  const addUser = useCallback(({ name, email, role }) => {
+    const user = { id: `u-${Date.now()}`, name, email, role };
+    setUsersState(prev => { const next = [...prev, user]; storage.set('users', next); return next; });
+    return user;
+  }, []);
+
+  const updateUser = useCallback((id, patch) => {
+    setUsersState(prev => { const next = prev.map(u => (u.id === id ? { ...u, ...patch } : u)); storage.set('users', next); return next; });
+  }, []);
+
+  const removeUser = useCallback((id) => {
+    setUsersState(prev => {
+      if (prev.length <= 1) return prev; // keep at least one user
+      const next = prev.filter(u => u.id !== id);
+      storage.set('users', next);
+      if (id === currentUserId) { setCurrentUserIdState(next[0].id); storage.set('currentUserId', next[0].id); }
+      return next;
+    });
+  }, [currentUserId]);
+
   return (
     <UserContext.Provider value={{
       users,
@@ -42,6 +63,9 @@ export function UserProvider({ children }) {
       currentUser,
       role: currentUser?.role,
       switchUser,
+      addUser,
+      updateUser,
+      removeUser,
       can,
     }}>
       {children}

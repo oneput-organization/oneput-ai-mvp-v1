@@ -11,6 +11,8 @@ import {
   CalendarClock,
   FileText,
   History,
+  Layers,
+  Users as UsersIcon,
   PanelLeftClose,
   PanelLeftOpen,
   Sparkles,
@@ -35,6 +37,7 @@ const navItems = [
     section: 'Data Collection',
     items: [
       { to: '/registry', icon: Database, label: 'Metrics Registry', protected: true },
+      { to: '/topics', icon: Layers, label: 'Material Topics', protected: true, permission: 'metric:manage' },
       { to: '/collection', icon: ClipboardList, label: 'Data Collection', protected: true },
     ],
   },
@@ -55,6 +58,13 @@ const navItems = [
     section: 'Oversight',
     items: [
       { to: '/audit', icon: History, label: 'Audit Trail', protected: true, permission: 'audit:view' },
+      { to: '/findings', icon: ClipboardList, label: 'Findings', protected: true, permission: 'finding:create' },
+    ],
+  },
+  {
+    section: 'Administration',
+    items: [
+      { to: '/users', icon: UsersIcon, label: 'User Management', protected: true, permission: 'user:manage' },
     ],
   },
 ];

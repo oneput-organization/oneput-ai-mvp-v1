@@ -50,6 +50,10 @@ export function DataProvider({ children }) {
   const [customMetrics, setCustomMetricsState] = useState(() => storage.get('customMetrics', []));
   const allMetrics = [...baseMetrics, ...customMetrics];
 
+  // External-auditor findings/observations, and Admin material topics (group metrics).
+  const [findings, setFindingsState] = useState(() => storage.get('findings', []));
+  const [materialTopics, setMaterialTopicsState] = useState(() => storage.get('materialTopics', []));
+
   const setActiveMetricIds = (ids) => {
     setActiveMetricIdsState(ids);
     storage.set('activeMetricIds', ids);
@@ -197,6 +201,42 @@ export function DataProvider({ children }) {
     logEvent('metric.delete', { type: 'metric', id }, null, null);
   }, [logEvent]);
 
+  // ── External Auditor findings / observations ──
+  const addFinding = useCallback(({ text, severity = 'medium', scope = '' }) => {
+    const finding = {
+      id: `fnd-${Date.now()}`,
+      author: currentUser ? { id: currentUser.id, name: currentUser.name, role: currentUser.role } : null,
+      text, severity, scope, status: 'open',
+      createdAt: new Date().toISOString(),
+    };
+    setFindingsState(prev => { const next = [...prev, finding]; storage.set('findings', next); return next; });
+    logEvent('finding.create', { type: 'finding', id: finding.id }, null, severity);
+    return finding;
+  }, [currentUser, logEvent]);
+
+  const setFindingStatus = useCallback((id, status) => {
+    setFindingsState(prev => { const next = prev.map(f => (f.id === id ? { ...f, status } : f)); storage.set('findings', next); return next; });
+    logEvent('finding.status', { type: 'finding', id }, null, status);
+  }, [logEvent]);
+
+  // ── Admin material topics (group metrics) ──
+  const addTopic = useCallback(({ name, description = '', metricIds = [] }) => {
+    const topic = { id: `topic-${Date.now()}`, name, description, metricIds };
+    setMaterialTopicsState(prev => { const next = [...prev, topic]; storage.set('materialTopics', next); return next; });
+    logEvent('topic.create', { type: 'topic', id: topic.id }, null, name);
+    return topic;
+  }, [logEvent]);
+
+  const updateTopic = useCallback((id, patch) => {
+    setMaterialTopicsState(prev => { const next = prev.map(t => (t.id === id ? { ...t, ...patch } : t)); storage.set('materialTopics', next); return next; });
+    logEvent('topic.update', { type: 'topic', id }, null, null);
+  }, [logEvent]);
+
+  const deleteTopic = useCallback((id) => {
+    setMaterialTopicsState(prev => { const next = prev.filter(t => t.id !== id); storage.set('materialTopics', next); return next; });
+    logEvent('topic.delete', { type: 'topic', id }, null, null);
+  }, [logEvent]);
+
   // Computed stats
   const activeMetrics = allMetrics.filter(m => activeMetricIds.includes(m.id)).map(m => ({
     ...m,
@@ -239,6 +279,13 @@ export function DataProvider({ children }) {
       addMetric,
       updateMetric,
       deleteMetric,
+      findings,
+      addFinding,
+      setFindingStatus,
+      materialTopics,
+      addTopic,
+      updateTopic,
+      deleteTopic,
       activeMetrics,
       dataEntries,
       updateDataEntry,
