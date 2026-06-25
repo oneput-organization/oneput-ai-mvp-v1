@@ -3,7 +3,7 @@ import { useData } from '../../contexts/DataContext';
 import { useApp } from '../../contexts/AppContext';
 import { respond } from '../../services/assistant';
 import { X, Send, Sparkles, Maximize2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const nowTime = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 const newId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
@@ -22,6 +22,7 @@ export default function ChatWindow() {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { stats, activeMetrics, dataEntries } = useData();
   const { company, settings } = useApp();
@@ -52,6 +53,9 @@ export default function ChatWindow() {
     "Environmental overview",
     "Help with GRI 305-1",
   ];
+
+  // Hide the floating widget on the full chat page — it would be redundant there.
+  if (location.pathname.startsWith('/chatbot')) return null;
 
   if (!isOpen) {
     return (
