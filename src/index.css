@@ -1443,6 +1443,37 @@ button.chat-fab {
 .upload-tag.info { background: var(--primary-50, #eff6ff); color: var(--primary-600); }
 .upload-tag.warn { background: var(--warning-50, #fffbeb); color: var(--warning-600, #d97706); }
 
+/* ===== REPEATABLE ROWS EDITOR (structured-form breakdown tables) ===== */
+.rows-editor-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-sm);
+}
+
+.rows-editor-table th {
+  text-align: left;
+  font-size: var(--font-xs);
+  font-weight: 600;
+  color: var(--neutral-500);
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--neutral-200);
+}
+
+.rows-editor-table td {
+  padding: var(--space-1) var(--space-2) var(--space-1) 0;
+  vertical-align: middle;
+}
+
+.rows-editor-table td:first-child {
+  padding-left: 0;
+}
+
+.rows-editor-table .form-input,
+.rows-editor-table .form-select {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-sm);
+}
+
 .chat-quick-actions {
   display: flex;
   flex-wrap: wrap;

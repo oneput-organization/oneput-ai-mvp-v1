@@ -24,6 +24,29 @@ const sel = (key, label, options, required = true) => ({
 const sumFields = (vals, keys) =>
   keys.reduce((s, k) => s + (parseFloat(vals[k]) || 0), 0);
 
+// Repeatable table field. The stored value is an array of row objects, each keyed
+// by the column `key`. Columns are { key, label, type: 'number'|'text'|'select', options? }.
+const rows = (key, label, columns, { required = false, addLabel = 'Add row', helpText = '' } = {}) => ({
+  key, label, type: 'rows', required, columns, addLabel, helpText,
+});
+
+// Shared GRI "data quality & methodology" block appended to quantitative forms.
+// All fields optional — captures the methodology, coverage and assurance context
+// GRI expects alongside the headline number without blocking submission.
+const dataQualitySection = {
+  label: 'Data quality & methodology',
+  fields: [
+    pct('data_coverage', 'Data coverage of this disclosure', false),
+    sel('data_type', 'Data type', ['Measured', 'Calculated', 'Estimated'], false),
+    sel('quality_rating', 'Data quality rating', ['Low', 'Medium', 'High'], false),
+    sel('external_verification', 'External verification', ['None', 'Limited assurance', 'Reasonable assurance'], false),
+    area('methodology', 'Methodology & assumptions', 'Standards used, calculation approach, and key assumptions...', false),
+  ],
+};
+
+const GHG_GASES = ['CO₂', 'CH₄', 'N₂O', 'HFCs', 'PFCs', 'SF₆', 'NF₃'];
+const GWP_VERSIONS = ['IPCC AR4', 'IPCC AR5', 'IPCC AR6'];
+
 // ─── GOVERNANCE (GRI 2 series) ────────────────────────────────────────────────
 // Text-only disclosures use a single textarea — no structured sub-fields needed.
 
@@ -132,8 +155,23 @@ const form3021 = {
         num('heating', 'Heating consumption', 'GJ', false),
         num('cooling', 'Cooling consumption', 'GJ', false),
         num('steam', 'Steam consumption', 'GJ', false),
+        num('energy_sold', 'Electricity/heating/cooling/steam sold', 'GJ', false,
+          { helpText: 'Subtracted from consumption to get total energy within the organization.' }),
       ],
     },
+    {
+      label: 'Fuel detail & conversion factors',
+      fields: [
+        rows('fuel_breakdown', 'Fuel consumption by type', [
+          { key: 'fuel_type', label: 'Fuel type', type: 'text' },
+          { key: 'source', label: 'Source', type: 'select', options: ['Non-renewable', 'Renewable'] },
+          { key: 'consumption', label: 'Consumption', type: 'number' },
+          { key: 'unit', label: 'Unit', type: 'select', options: ['GJ', 'MWh', 'litres', 'kg', 'm³'] },
+        ], { addLabel: 'Add fuel type', helpText: 'GRI 302-1(a,b): fuel by type, split renewable vs non-renewable.' }),
+        txt('conversion_source', 'Source of conversion factors', 'e.g. IEA, national energy statistics', false),
+      ],
+    },
+    dataQualitySection,
   ],
   computed: [
     {
@@ -141,11 +179,13 @@ const form3021 = {
       label: 'Total energy consumption',
       unit: 'GJ',
       formula: (v) =>
-        sumFields(v, ['nonrenewable_fuel', 'renewable_fuel', 'electricity', 'heating', 'cooling', 'steam']).toFixed(2),
+        (sumFields(v, ['nonrenewable_fuel', 'renewable_fuel', 'electricity', 'heating', 'cooling', 'steam'])
+          - (parseFloat(v.energy_sold) || 0)).toFixed(2),
     },
   ],
   getPrimaryValue: (v) =>
-    sumFields(v, ['nonrenewable_fuel', 'renewable_fuel', 'electricity', 'heating', 'cooling', 'steam']).toFixed(2),
+    (sumFields(v, ['nonrenewable_fuel', 'renewable_fuel', 'electricity', 'heating', 'cooling', 'steam'])
+      - (parseFloat(v.energy_sold) || 0)).toFixed(2),
 };
 
 // ─── GRI 302-3 ───────────────────────────────────────────────────────────────
@@ -187,9 +227,20 @@ const form3033 = {
         num('surface_water', 'Surface water withdrawal', 'ML'),
         num('groundwater', 'Groundwater withdrawal', 'ML'),
         num('seawater', 'Seawater withdrawal', 'ML', false),
+        num('produced_water', 'Produced water', 'ML', false),
         num('third_party', 'Third-party water (e.g. municipal supply)', 'ML'),
       ],
     },
+    {
+      label: 'Water stress & quality split',
+      fields: [
+        num('water_stress_total', 'Withdrawal from areas with water stress', 'ML', false,
+          { helpText: 'Identify water-stress areas with a recognized tool (e.g. WRI Aqueduct).' }),
+        num('freshwater', 'Freshwater (≤1,000 mg/L Total Dissolved Solids)', 'ML', false),
+        num('other_water', 'Other water (>1,000 mg/L Total Dissolved Solids)', 'ML', false),
+      ],
+    },
+    dataQualitySection,
   ],
   computed: [
     {
@@ -197,11 +248,11 @@ const form3033 = {
       label: 'Total water withdrawal',
       unit: 'ML',
       formula: (v) =>
-        sumFields(v, ['surface_water', 'groundwater', 'seawater', 'third_party']).toFixed(2),
+        sumFields(v, ['surface_water', 'groundwater', 'seawater', 'produced_water', 'third_party']).toFixed(2),
     },
   ],
   getPrimaryValue: (v) =>
-    sumFields(v, ['surface_water', 'groundwater', 'seawater', 'third_party']).toFixed(2),
+    sumFields(v, ['surface_water', 'groundwater', 'seawater', 'produced_water', 'third_party']).toFixed(2),
 };
 
 // ─── GRI 303-5 ───────────────────────────────────────────────────────────────
@@ -226,15 +277,35 @@ const form3051 = {
       label: 'Scope 1 GHG Emissions',
       fields: [
         num('gross_scope1', 'Gross direct (Scope 1) GHG emissions', 'tCO₂e'),
-        num('biogenic_co2', 'Biogenic CO₂ emissions (if applicable)', 'tCO₂e', false),
+        num('biogenic_co2', 'Biogenic CO₂ emissions (reported separately)', 'tCO₂e', false),
         sel('consolidation_approach', 'Consolidation approach', [
           'Operational control',
           'Financial control',
           'Equity share',
         ]),
-        txt('gwp_source', 'GWP source used', 'e.g. IPCC Fifth Assessment Report', false),
       ],
     },
+    {
+      label: 'Gases included (per-gas breakdown)',
+      fields: [
+        rows('gas_breakdown', 'GHG gases', [
+          { key: 'gas', label: 'Gas', type: 'select', options: GHG_GASES },
+          { key: 'tonnes', label: 'Tonnes of gas', type: 'number' },
+          { key: 'gwp', label: 'GWP version', type: 'select', options: GWP_VERSIONS },
+          { key: 'tco2e', label: 'tCO₂e', type: 'number' },
+        ], { addLabel: 'Add gas', helpText: 'GRI 305-1(b): list the gases included. tCO₂e = tonnes of gas × its GWP.' }),
+      ],
+    },
+    {
+      label: 'Base year & factors',
+      fields: [
+        txt('base_year', 'Base year', 'e.g. 2020', false),
+        num('base_year_emissions', 'Base-year emissions', 'tCO₂e', false),
+        txt('gwp_source', 'Source of GWP rates', 'e.g. IPCC Fifth Assessment Report (AR5)', false),
+        txt('ef_source', 'Source of emission factors', 'e.g. national GHG inventory, supplier data', false),
+      ],
+    },
+    dataQualitySection,
   ],
   getPrimaryValue: (v) => v.gross_scope1 ?? '',
 };
@@ -299,6 +370,17 @@ const form3063 = {
         num('non_hazardous', 'Non-hazardous waste generated', 'tonnes'),
       ],
     },
+    {
+      label: 'Breakdown by composition',
+      fields: [
+        rows('composition', 'Waste by composition', [
+          { key: 'stream', label: 'Waste stream', type: 'text' },
+          { key: 'classification', label: 'Classification', type: 'select', options: ['Hazardous', 'Non-hazardous'] },
+          { key: 'tonnes', label: 'Tonnes', type: 'number' },
+        ], { addLabel: 'Add waste stream', helpText: 'GRI 306-3(a): break the total down by composition (e.g. paper, plastics, e-waste, chemicals).' }),
+      ],
+    },
+    dataQualitySection,
   ],
   computed: [
     {
@@ -423,19 +505,38 @@ const form4039 = {
       label: 'Exposure Data',
       fields: [
         num('hours_worked', 'Total hours worked', 'hours'),
+        sel('rate_basis', 'Rate basis', ['Per 200,000 hours', 'Per 1,000,000 hours'], false),
       ],
     },
+    {
+      label: 'Non-employee workers (workplace controlled by org)',
+      fields: [
+        num('fatalities_ne', 'Fatalities — non-employee workers', 'count', false),
+        num('high_consequence_ne', 'High-consequence injuries — non-employee workers', 'count', false),
+        num('recordable_ne', 'Recordable injuries — non-employee workers', 'count', false),
+        num('hours_worked_ne', 'Hours worked — non-employee workers', 'hours', false),
+      ],
+    },
+    {
+      label: 'Hazards',
+      fields: [
+        area('hazards', 'Work-related hazards posing a risk of high-consequence injury',
+          'Describe the main hazards and how they are determined (GRI 403-9 c).'),
+      ],
+    },
+    dataQualitySection,
   ],
   computed: [
     {
       key: 'injury_rate',
-      label: 'Recordable injury rate (per 1M hours)',
+      label: 'Recordable injury rate',
       unit: 'rate',
       formula: (v) => {
         const h = parseFloat(v.hours_worked);
         const r = parseFloat(v.recordable_injuries);
         if (!h || isNaN(r)) return '';
-        return ((r / h) * 1_000_000).toFixed(2);
+        const basis = v.rate_basis === 'Per 200,000 hours' ? 200_000 : 1_000_000;
+        return ((r / h) * basis).toFixed(2);
       },
     },
   ],
@@ -616,6 +717,24 @@ export function validateStructuredForm(metricId, fieldValues) {
   form.sections.forEach(section => {
     section.fields.forEach(field => {
       const val = fieldValues[field.key];
+
+      if (field.type === 'rows') {
+        const list = Array.isArray(val) ? val : [];
+        if (field.required && list.length === 0) {
+          errors[field.key] = 'Add at least one row.';
+          return;
+        }
+        // Validate numeric columns in any populated row.
+        for (let i = 0; i < list.length; i++) {
+          const row = list[i] || {};
+          const badCol = field.columns.find(c =>
+            c.type === 'number' && row[c.key] !== '' && row[c.key] != null && isNaN(parseFloat(row[c.key]))
+          );
+          if (badCol) { errors[field.key] = `Row ${i + 1}: ${badCol.label} must be a number.`; break; }
+        }
+        return;
+      }
+
       const isEmpty = val === '' || val === null || val === undefined;
       if (field.required && isEmpty) {
         errors[field.key] = 'This field is required.';

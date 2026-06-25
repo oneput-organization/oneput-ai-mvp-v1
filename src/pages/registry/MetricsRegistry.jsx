@@ -119,16 +119,40 @@ export default function MetricsRegistry() {
                   {isExpanded && (
                     <tr>
                       <td colSpan={7} style={{ background: 'var(--neutral-50)', padding: 'var(--space-5)' }}>
-                        <div style={{ maxWidth: 700 }}>
+                        <div style={{ maxWidth: 720 }}>
                           <p style={{ fontSize: 'var(--font-sm)', color: 'var(--neutral-600)', lineHeight: 1.6, marginBottom: 'var(--space-4)' }}>
                             {metric.description || '—'}
                           </p>
-                          <div style={{ display: 'flex', gap: 'var(--space-6)', fontSize: 'var(--font-xs)', flexWrap: 'wrap' }}>
+                          <div style={{ display: 'flex', gap: 'var(--space-6)', fontSize: 'var(--font-xs)', flexWrap: 'wrap', marginBottom: 'var(--space-4)' }}>
                             <div><span style={{ color: 'var(--neutral-400)', fontWeight: 600 }}>Data Type:</span> {metric.dataType}</div>
+                            {metric.type && <div><span style={{ color: 'var(--neutral-400)', fontWeight: 600 }}>Disclosure:</span> <span className="badge badge-blue">{metric.type}</span></div>}
                             <div><span style={{ color: 'var(--neutral-400)', fontWeight: 600 }}>Framework:</span> <span className="badge badge-blue">{metric.framework.join(', ')}</span></div>
                             {metric.validationRules?.min !== undefined && <div><span style={{ color: 'var(--neutral-400)', fontWeight: 600 }}>Min:</span> {metric.validationRules.min}</div>}
                             {metric.validationRules?.max !== undefined && <div><span style={{ color: 'var(--neutral-400)', fontWeight: 600 }}>Max:</span> {metric.validationRules.max}</div>}
                           </div>
+
+                          {metric.coreDataSummary && (
+                            <p style={{ fontSize: 'var(--font-xs)', color: 'var(--neutral-500)', marginBottom: 'var(--space-3)' }}>
+                              <span style={{ fontWeight: 600 }}>What to collect:</span> {metric.coreDataSummary}
+                            </p>
+                          )}
+
+                          {metric.reportingRequirements?.length > 0 && (
+                            <div style={{ marginBottom: 'var(--space-3)' }}>
+                              <div style={{ fontSize: 'var(--font-xs)', fontWeight: 600, color: 'var(--neutral-400)', marginBottom: 'var(--space-2)' }}>GRI reporting requirements</div>
+                              <ul style={{ margin: 0, paddingLeft: 'var(--space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--space-1)' }}>
+                                {metric.reportingRequirements.map((r, i) => (
+                                  <li key={i} style={{ fontSize: 'var(--font-xs)', color: 'var(--neutral-600)', lineHeight: 1.5 }}>{r}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {metric.guidance && (
+                            <p style={{ fontSize: 'var(--font-xs)', color: 'var(--neutral-600)', padding: 'var(--space-3)', background: 'var(--primary-50, #eff6ff)', borderRadius: 'var(--radius-md)', lineHeight: 1.5 }}>
+                              💡 {metric.guidance}
+                            </p>
+                          )}
                           {canManage && metric.custom && (
                             <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-4)' }}>
                               <button className="btn btn-ghost btn-sm" onClick={() => setEditing(metric)}><Pencil size={13} /> Edit</button>

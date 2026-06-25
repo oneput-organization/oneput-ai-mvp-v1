@@ -37,9 +37,25 @@ reportingPeriodStart, reportingPeriodEnd, country`.
   dataType,      // 'number' | 'text'
   framework,     // string[] of standards this maps to, e.g. ['GRI']  (one metric -> many standards)
   validationRules, // { required?, min?, max?, minLength?, maxLength? }
+
+  // GRI reference detail — merged in by id from data/gri-disclosure-detail.js:
+  type,                  // 'Quantitative' | 'Qualitative' | 'Mixed'
+  coreDataSummary,       // one line: what to collect
+  reportingRequirements, // string[] — the disclosure's lettered requirements
+  guidance,              // short practical note for the data owner
 }
 ```
-`CATEGORIES` and `STATUSES` are exported from the same file.
+`CATEGORIES` and `STATUSES` are exported from the same file. The reference detail
+(`type`/`coreDataSummary`/`reportingRequirements`/`guidance`) lives in
+`data/gri-disclosure-detail.js` and is merged onto each metric in `gri-metrics.js`
+(`GRI_METRICS = RAW_GRI_METRICS.map(m => ({ ...m, ...DETAIL[m.id] }))`), so every consumer gets it.
+
+**Structured forms** (`data/gri-metric-forms.js`, `METRIC_FORMS[metricId]`) define the GRI-required
+sub-fields per disclosure. Field types: `number`, `percent`, `text`, `textarea`, `select`, plus
+`rows` (a repeatable table whose stored value is an array of row objects keyed by column `key` — used
+for per-gas / per-fuel / per-waste-stream breakdowns). The flagship quantitative forms (305-1, 302-1,
+303-3, 306-3, 403-9) also carry a shared optional **data quality & methodology** section. Structured
+values serialize to JSON in `dataEntries[metricId].value`; `getDisplayValue` shows the headline number.
 
 **MVP is GRI-only** — every metric is tagged `framework: ['GRI']` and `settings.framework` is
 `'gri-2021'`. The `framework` field is kept as an array so additional standards (IFRS S1/S2, SEC 56-1)

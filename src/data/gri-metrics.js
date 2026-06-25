@@ -1,5 +1,11 @@
 // GRI 2021 Universal Standards - Key Metrics Registry
 // This covers representative disclosures across E, S, and G categories.
+//
+// The rich GRI reference detail (type, what-to-collect summary, the disclosure's
+// reporting requirements, and guidance) lives in gri-disclosure-detail.js and is
+// merged onto each metric by id below — so every consumer of GRI_METRICS gets it.
+
+import { DISCLOSURE_DETAIL } from './gri-disclosure-detail';
 
 export const GRI_FRAMEWORK = {
   id: 'gri-2021',
@@ -10,7 +16,7 @@ export const GRI_FRAMEWORK = {
   categories: ['Environmental', 'Social', 'Governance'],
 };
 
-export const GRI_METRICS = [
+const RAW_GRI_METRICS = [
   // ===== GOVERNANCE (GRI 2: General Disclosures) =====
   {
     id: 'gri-2-1',
@@ -377,6 +383,13 @@ export const GRI_METRICS = [
     validationRules: { required: true, min: 0 },
   },
 ];
+
+// Public registry: each disclosure enriched with its GRI reference detail
+// (type, coreDataSummary, reportingRequirements, guidance) merged in by id.
+export const GRI_METRICS = RAW_GRI_METRICS.map(m => ({
+  ...m,
+  ...(DISCLOSURE_DETAIL[m.id] || {}),
+}));
 
 export const CATEGORIES = [
   { key: 'Environmental', label: 'Environmental', color: 'env' },

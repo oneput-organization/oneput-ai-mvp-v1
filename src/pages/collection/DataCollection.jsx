@@ -15,7 +15,7 @@ import {
   Search, Filter, Upload, Download, X, Send,
   CheckCircle2, XCircle, Clock, AlertTriangle,
   FileSpreadsheet, ChevronRight, MessageSquare, Info,
-  Users, Plug, History,
+  Users, Plug, History, Plus, Trash2, BookOpen,
 } from 'lucide-react';
 
 // Human-readable summary of an audit event for the metric history list.
@@ -331,6 +331,9 @@ function MetricEntryModal({ metric, entry, canEnter, canReview, canComment, canA
             </p>
           </div>
 
+          {/* GRI reporting requirements reference (collapsible) */}
+          <GriRequirementsPanel metric={metric} />
+
           {/* Owner assignment (Admin) */}
           {canAssign && (
             <div className="form-group" style={{ marginBottom: 'var(--space-5)' }}>
@@ -492,7 +495,7 @@ function StructuredMetricForm({ form, values, errors, onChange }) {
                 value={values[field.key] ?? ''}
                 error={errors[field.key]}
                 onChange={val => onChange(field.key, val)}
-                fullWidth={field.type === 'textarea' || field.type === 'text' && field.placeholder?.length > 40}
+                fullWidth={field.type === 'rows' || field.type === 'textarea' || field.type === 'text' && field.placeholder?.length > 40}
               />
             ))}
           </div>
@@ -550,7 +553,9 @@ function FieldInput({ field, value, error, onChange, fullWidth }) {
         {field.required && <span className="req">*</span>}
       </label>
 
-      {field.type === 'textarea' ? (
+      {field.type === 'rows' ? (
+        <RowsEditor field={field} value={value} onChange={onChange} />
+      ) : field.type === 'textarea' ? (
         <textarea
           className={`form-textarea ${error ? 'error' : ''}`}
           rows={3}
@@ -588,6 +593,123 @@ function FieldInput({ field, value, error, onChange, fullWidth }) {
         </div>
       )}
       {error && <div className="form-error">{error}</div>}
+    </div>
+  );
+}
+
+// ─── GRI REQUIREMENTS REFERENCE (what the standard asks you to disclose) ──────
+
+function GriRequirementsPanel({ metric }) {
+  const [open, setOpen] = useState(false);
+  const reqs = metric.reportingRequirements || [];
+  if (reqs.length === 0 && !metric.guidance) return null;
+
+  return (
+    <div style={{ border: '1px solid var(--neutral-200)', borderRadius: 'var(--radius-lg)', marginBottom: 'var(--space-5)', overflow: 'hidden' }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
+          padding: 'var(--space-3) var(--space-4)', background: 'var(--neutral-50)',
+          border: 'none', cursor: 'pointer', textAlign: 'left',
+        }}
+      >
+        <BookOpen size={15} style={{ color: 'var(--primary-500)' }} />
+        <span style={{ fontSize: 'var(--font-xs)', fontWeight: 700, color: 'var(--neutral-700)', flex: 1 }}>
+          GRI reporting requirements
+          {metric.type && (
+            <span className="badge badge-blue" style={{ marginLeft: 8, fontSize: 'var(--font-xs)' }}>{metric.type}</span>
+          )}
+        </span>
+        <ChevronRight size={15} style={{ color: 'var(--neutral-400)', transform: open ? 'rotate(90deg)' : 'none', transition: 'transform var(--transition-fast)' }} />
+      </button>
+      {open && (
+        <div style={{ padding: 'var(--space-4)' }}>
+          {metric.coreDataSummary && (
+            <p style={{ fontSize: 'var(--font-xs)', color: 'var(--neutral-500)', marginBottom: 'var(--space-3)' }}>
+              <strong>What to collect:</strong> {metric.coreDataSummary}
+            </p>
+          )}
+          {reqs.length > 0 && (
+            <ul style={{ margin: 0, paddingLeft: 'var(--space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+              {reqs.map((r, i) => (
+                <li key={i} style={{ fontSize: 'var(--font-xs)', color: 'var(--neutral-600)', lineHeight: 1.5 }}>{r}</li>
+              ))}
+            </ul>
+          )}
+          {metric.guidance && (
+            <p style={{ fontSize: 'var(--font-xs)', color: 'var(--neutral-600)', marginTop: 'var(--space-3)', padding: 'var(--space-3)', background: 'var(--primary-50, #eff6ff)', borderRadius: 'var(--radius-md)', lineHeight: 1.5 }}>
+              💡 {metric.guidance}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── REPEATABLE ROWS (per-gas, per-source, per-stream breakdown tables) ────────
+
+function RowsEditor({ field, value, onChange }) {
+  const list = Array.isArray(value) ? value : [];
+  const cols = field.columns;
+
+  const updateCell = (i, key, v) =>
+    onChange(list.map((row, idx) => (idx === i ? { ...row, [key]: v } : row)));
+  const addRow = () =>
+    onChange([...list, Object.fromEntries(cols.map(c => [c.key, '']))]);
+  const removeRow = (i) => onChange(list.filter((_, idx) => idx !== i));
+
+  return (
+    <div className="rows-editor">
+      <table className="rows-editor-table">
+        <thead>
+          <tr>
+            {cols.map(c => <th key={c.key}>{c.label}</th>)}
+            <th style={{ width: 36 }}></th>
+          </tr>
+        </thead>
+        <tbody>
+          {list.length === 0 && (
+            <tr>
+              <td colSpan={cols.length + 1} style={{ color: 'var(--neutral-400)', fontSize: 'var(--font-xs)' }}>
+                No rows yet — add one below.
+              </td>
+            </tr>
+          )}
+          {list.map((row, i) => (
+            <tr key={i}>
+              {cols.map(c => (
+                <td key={c.key}>
+                  {c.type === 'select' ? (
+                    <select className="form-select" value={row[c.key] ?? ''} onChange={e => updateCell(i, c.key, e.target.value)}>
+                      <option value="">—</option>
+                      {c.options.map(o => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                  ) : (
+                    <input
+                      className="form-input"
+                      type={c.type === 'number' ? 'number' : 'text'}
+                      step={c.type === 'number' ? 'any' : undefined}
+                      value={row[c.key] ?? ''}
+                      onChange={e => updateCell(i, c.key, e.target.value)}
+                    />
+                  )}
+                </td>
+              ))}
+              <td>
+                <button type="button" className="btn btn-ghost btn-sm" title="Remove row" onClick={() => removeRow(i)}>
+                  <Trash2 size={13} />
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <button type="button" className="btn btn-ghost btn-sm" onClick={addRow} style={{ marginTop: 'var(--space-2)' }}>
+        <Plus size={13} /> {field.addLabel || 'Add row'}
+      </button>
     </div>
   );
 }
