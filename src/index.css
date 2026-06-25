@@ -1348,7 +1348,8 @@ button.chat-fab {
   border-color: var(--primary-400);
 }
 
-.chat-input-area button {
+/* Direct-child only — must not leak into the upload modal rendered inside this area */
+.chat-input-area > button {
   width: 36px;
   height: 36px;
   border: none;
@@ -1363,26 +1364,23 @@ button.chat-fab {
   flex-shrink: 0;
 }
 
-.chat-input-area button:hover {
+.chat-input-area > button:hover {
   background: var(--primary-600);
 }
 
 /* Attach (upload) button — neutral, distinct from the round primary send button */
-.chat-input-area .chat-attach-btn {
-  width: 36px;
-  height: 36px;
+.chat-input-area > .chat-attach-btn {
   border: 1px solid var(--neutral-200);
   background: var(--neutral-0);
   color: var(--neutral-500);
-  border-radius: 50%;
 }
 
-.chat-input-area .chat-attach-btn:hover:not(:disabled) {
+.chat-input-area > .chat-attach-btn:hover:not(:disabled) {
   background: var(--neutral-100);
   color: var(--neutral-700);
 }
 
-.chat-input-area .chat-attach-btn:disabled {
+.chat-input-area > .chat-attach-btn:disabled {
   opacity: 0.6;
   cursor: default;
 }
