@@ -24,7 +24,7 @@ export default function Dashboard() {
   const { currentUser, can } = useUser();
 
   const greeting = company.name
-    ? `Welcome back, ${company.name}`
+    ? `Welcome back, ${currentUser.name} | ${company.name}`
     : 'Welcome to Oneput AI';
 
   // Role-aware quick actions — show only what this role can act on.
