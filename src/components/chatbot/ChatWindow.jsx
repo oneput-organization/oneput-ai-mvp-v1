@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useApp } from '../../contexts/AppContext';
 import { respond } from '../../services/assistant';
+import ChatUpload from './ChatUpload';
 import { X, Send, Sparkles, Maximize2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -46,6 +47,9 @@ export default function ChatWindow() {
     setMessages(prev => [...prev, botMsg]);
     setIsTyping(false);
   };
+
+  const pushBotMessage = (text) =>
+    setMessages(prev => [...prev, { id: newId(), type: 'bot', text, time: nowTime() }]);
 
   const quickActions = [
     "What's our progress?",
@@ -137,6 +141,7 @@ export default function ChatWindow() {
       </div>
 
       <div className="chat-input-area">
+        <ChatUpload onFilled={pushBotMessage} />
         <input
           type="text"
           placeholder="Ask Oneput AI..."

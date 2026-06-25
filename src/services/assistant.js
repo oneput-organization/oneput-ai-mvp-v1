@@ -7,6 +7,7 @@
 // lives in the client; the real model call belongs server-side.
 
 import { GRI_METRICS } from '../data/gri-metrics';
+import { parseCSV } from '../utils/validation';
 
 export const MODEL = 'claude-opus-4-8';
 
@@ -89,6 +90,64 @@ export async function respond(messages, context) {
   }
 
   return { text: localRespond(text, context), actions: [] };
+}
+
+/**
+ * The one data-extraction boundary. Reads an uploaded file and returns raw rows
+ * to be mapped to metrics + validated + confirmed before anything is written.
+ *
+ * MVP: CSV is parsed locally (reusing utils/validation `parseCSV`). Richer formats
+ * (image / PDF / xlsx) need a real Claude document/vision read, which happens
+ * server-side when VITE_ASSISTANT_API_URL is set — the file is POSTed there. NO
+ * API KEY in the client; non-CSV without a backend returns an explanatory note.
+ *
+ * @param file    a browser File (from an <input type="file">)
+ * @param context { activeMetrics } — used by the backend to ground the extraction
+ * @returns {Promise<{ rows: {code,name,value,unit,notes}[], notes: string }>}
+ */
+export async function extractEntries(file, context = {}) {
+  const isCsv = /\.csv$/i.test(file.name) || file.type === 'text/csv';
+  const apiUrl = import.meta.env?.VITE_ASSISTANT_API_URL;
+
+  // Non-CSV (image/PDF/xlsx) — only the backend can read these. Try it; if it's
+  // not configured or unreachable, say so rather than silently failing.
+  if (!isCsv) {
+    if (apiUrl) {
+      try {
+        const form = new FormData();
+        form.append('file', file);
+        form.append('model', MODEL);
+        form.append('metrics', JSON.stringify(
+          (context.activeMetrics || []).map(m => ({ code: m.code, name: m.name, unit: m.unit }))
+        ));
+        const res = await fetch(`${apiUrl.replace(/\/$/, '')}/extract`, { method: 'POST', body: form });
+        if (res.ok) {
+          const data = await res.json();
+          return { rows: data.rows ?? [], notes: data.notes ?? '' };
+        }
+      } catch {
+        // fall through to the unsupported note
+      }
+    }
+    return {
+      rows: [],
+      notes: `I can read **CSV** files directly. To extract from ${file.name} (image/PDF/Excel) the extraction backend must be configured.`,
+    };
+  }
+
+  // CSV — parse locally. metric_code/value/unit/notes mirror the import template.
+  const text = await file.text();
+  const { rows } = parseCSV(text);
+  return {
+    rows: rows.map(r => ({
+      code: r.metric_code || r.code || '',
+      name: r.metric_name || r.name || '',
+      value: r.value ?? '',
+      unit: r.unit || '',
+      notes: r.notes || '',
+    })),
+    notes: '',
+  };
 }
 
 /**

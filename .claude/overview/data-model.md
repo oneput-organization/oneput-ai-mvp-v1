@@ -97,7 +97,9 @@ pending → in-progress → submitted → under-review → approved
 - **Assignment** — modelled as the `assignee` (User id) on each data entry; set via `assignMetric`.
 - **AuditEvent** (`oneput_auditEvents`) — `{ id, actor, action, target, before, after, timestamp }`.
   Append-only, written by `logEvent` from DataContext actions (`data.status`, `data.update`,
-  `data.assign`, `comment.add`) and by chasing (`chase.request`, `chase.nudge`, `chase.escalate`).
+  `data.assign`, `data.upload`, `comment.add`) and by chasing (`chase.request`, `chase.nudge`,
+  `chase.escalate`). `data.upload` is logged per metric when values are filled from a chat file
+  upload (see `extractEntries` in `services/assistant.js` + `components/chatbot/ChatUpload.jsx`).
   Trail **view** (filterable timeline) is still to build — non-core Audit task.
 - **DataRequest** (`oneput_dataRequests`) — `{ id, ownerId, metricIds[], dueDate, createdAt }`. Built
   per owner by `AssistantContext.planRequests`. Chasing activity is logged to `oneput_assistantLog`

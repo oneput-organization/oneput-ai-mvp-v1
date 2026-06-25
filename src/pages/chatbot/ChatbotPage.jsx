@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useApp } from '../../contexts/AppContext';
 import { respond } from '../../services/assistant';
+import ChatUpload from '../../components/chatbot/ChatUpload';
 import {
   Send,
   Sparkles,
@@ -55,6 +56,13 @@ export default function ChatbotPage() {
       c.id === activeConvId ? { ...c, messages: [...c.messages, botMsg] } : c
     ));
     setIsTyping(false);
+  };
+
+  const pushBotMessage = (text) => {
+    const botMsg = { id: `${newId()}-bot`, type: 'bot', text, time: nowTime() };
+    setConversations(prev => prev.map(c =>
+      c.id === activeConvId ? { ...c, messages: [...c.messages, botMsg] } : c
+    ));
   };
 
   const newConversation = () => {
@@ -182,6 +190,7 @@ export default function ChatbotPage() {
           </div>
 
           <div className="chat-input-area" style={{ padding: 'var(--space-4) var(--space-5)' }}>
+            <ChatUpload onFilled={pushBotMessage} />
             <input
               type="text"
               placeholder="Ask Oneput AI anything about your ESG reporting..."

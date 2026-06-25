@@ -1,9 +1,9 @@
 # Module 7 — Upload Data in Chat → Fill Data Points
 
-**Status:** Not started. Chat (`components/chatbot/ChatWindow.jsx`, `pages/chatbot/ChatbotPage.jsx`)
-is text-only; data points are filled only via Data Collection manual entry / CSV import
-(`pages/collection/DataCollection.jsx`, `utils/validation.js`). There is **no** way to drop a file
-into the chat and have the assistant populate metric entries.
+**Status:** Done. Chat surfaces (`components/chatbot/ChatWindow.jsx`, `pages/chatbot/ChatbotPage.jsx`)
+now have a `ChatUpload` attach control that extracts data from an uploaded file, maps + validates it,
+shows a confirm preview, and fills `dataEntries` via `bulkUpdateEntries` (audited as `data.upload`).
+Extraction is behind `extractEntries` in `services/assistant.js` (local CSV; backend for image/PDF/xlsx).
 
 **Goal:** let a user attach a file (CSV first; image/PDF/Excel later) in the chat, have the assistant
 **extract values and map them to active GRI metrics**, show a **review/confirm preview**, and on
@@ -51,13 +51,13 @@ becomes a second, AI-assisted path into the same collection + validation + revie
 
 ## Acceptance criteria
 
-- [ ] A file can be attached in both chat surfaces and sent (CSV for MVP; picker ready for image/PDF/xlsx).
-- [ ] Extraction runs behind one swappable function (local CSV parse now; backend Claude when configured); no client API key.
-- [ ] Extracted rows are mapped to active metrics by code/name; unmatched rows are surfaced, not dropped.
-- [ ] Every value is validated with `utils/validation.js`; invalid rows cannot be written.
-- [ ] A review/confirm preview shows matched/valid/overwrite state; nothing writes before confirm.
-- [ ] Confirmed rows fill `dataEntries` via `bulkUpdateEntries` and enter the normal review flow (no auto-approve).
-- [ ] Each fill is in the audit log; chat returns a grounded summary. `npm run lint` passes.
+- [x] A file can be attached in both chat surfaces and sent (CSV for MVP; picker ready for image/PDF/xlsx). _(`ChatUpload` in `ChatWindow` + `ChatbotPage` input areas; `accept=".csv"`, gated by `can('data:csv')`.)_
+- [x] Extraction runs behind one swappable function (local CSV parse now; backend Claude when configured); no client API key. _(`extractEntries(file, context)` in `services/assistant.js`: local `parseCSV`; POSTs non-CSV to `VITE_ASSISTANT_API_URL/extract`; no key client-side.)_
+- [x] Extracted rows are mapped to active metrics by code/name; unmatched rows are surfaced, not dropped. _(`resolveMetric` matches by GRI code then fuzzy name; unmatched rows shown with a "No match" tag.)_
+- [x] Every value is validated with `utils/validation.js`; invalid rows cannot be written. _(`validateMetricValue` per row; invalid rows tagged + checkbox disabled.)_
+- [x] A review/confirm preview shows matched/valid/overwrite state; nothing writes before confirm. _(Preview modal with Ready/Invalid/No match/Overwrites tags; `bulkUpdateEntries` only on "Fill N data points".)_
+- [x] Confirmed rows fill `dataEntries` via `bulkUpdateEntries` and enter the normal review flow (no auto-approve). _(Writes `status: 'submitted'` — Reviewer still approves; verified via Playwright.)_
+- [x] Each fill is in the audit log; chat returns a grounded summary. `npm run lint` passes. _(`logEvent('data.upload', …)` per metric; bot summary "filled N / skipped M"; lint + build green; Playwright e2e passes.)_
 
 > Scope: GRI-only (per `/CLAUDE.md`). MVP supports CSV extraction client-side; image/PDF/Excel
 > extraction is gated behind the backend boundary and can ship once the proxy exists.
