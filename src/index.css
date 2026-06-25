@@ -733,6 +733,12 @@ h4 { font-size: var(--font-lg); }
   margin-bottom: var(--space-1);
 }
 
+/* Required-field marker */
+.req {
+  color: var(--error-500);
+  margin-left: 2px;
+}
+
 .form-hint {
   font-size: var(--font-xs);
   color: var(--neutral-400);
@@ -1143,6 +1149,8 @@ h4 { font-size: var(--font-lg); }
   right: 24px;
   width: 400px;
   height: 560px;
+  max-height: calc(100vh - 48px);
+  max-width: calc(100vw - 48px);
   background: var(--neutral-0);
   border-radius: var(--radius-2xl);
   box-shadow: var(--shadow-xl);

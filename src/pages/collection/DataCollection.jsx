@@ -547,7 +547,7 @@ function FieldInput({ field, value, error, onChange, fullWidth }) {
         {field.unit && (
           <span style={{ fontWeight: 400, color: 'var(--neutral-400)', marginLeft: 4 }}>({field.unit})</span>
         )}
-        {field.required && <span style={{ color: 'var(--error-500)', marginLeft: 2 }}>*</span>}
+        {field.required && <span className="req">*</span>}
       </label>
 
       {field.type === 'textarea' ? (

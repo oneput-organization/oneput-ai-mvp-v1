@@ -132,13 +132,13 @@ function Step1({ onNext }) {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-5)' }}>
         <div className="form-group">
-          <label className="form-label">Company Name *</label>
+          <label className="form-label">Company Name <span className="req">*</span></label>
           <input className="form-input" type="text" placeholder="e.g. Acme Corporation"
             value={company.name} onChange={e => handleChange('name', e.target.value)} />
         </div>
 
         <div className="form-group">
-          <label className="form-label">Industry *</label>
+          <label className="form-label">Industry <span className="req">*</span></label>
           <select className="form-select" value={company.industry} onChange={e => handleChange('industry', e.target.value)}>
             <option value="">Select industry...</option>
             {industries.map(i => <option key={i} value={i}>{i}</option>)}
@@ -151,13 +151,13 @@ function Step1({ onNext }) {
         </div>
 
         <div className="form-group">
-          <label className="form-label">Number of Employees *</label>
+          <label className="form-label">Number of Employees <span className="req">*</span></label>
           <input className="form-input" type="text" placeholder="e.g. 5,000"
             value={company.employeeCount} onChange={e => handleChange('employeeCount', e.target.value)} />
         </div>
 
         <div className="form-group">
-          <label className="form-label">Annual Revenue Range *</label>
+          <label className="form-label">Annual Revenue Range <span className="req">*</span></label>
           <select className="form-select" value={company.revenueRange} onChange={e => handleChange('revenueRange', e.target.value)}>
             <option value="">Select range...</option>
             {revRanges.map(r => <option key={r} value={r}>{r}</option>)}
@@ -165,19 +165,19 @@ function Step1({ onNext }) {
         </div>
 
         <div className="form-group">
-          <label className="form-label">Reporting Period Start *</label>
+          <label className="form-label">Reporting Period Start <span className="req">*</span></label>
           <input className="form-input" type="date" value={company.reportingPeriodStart}
             onChange={e => handleChange('reportingPeriodStart', e.target.value)} />
         </div>
 
         <div className="form-group">
-          <label className="form-label">Reporting Period End *</label>
+          <label className="form-label">Reporting Period End <span className="req">*</span></label>
           <input className="form-input" type="date" value={company.reportingPeriodEnd}
             onChange={e => handleChange('reportingPeriodEnd', e.target.value)} />
         </div>
 
         <div className="form-group">
-          <label className="form-label">Country *</label>
+          <label className="form-label">Country <span className="req">*</span></label>
           <select className="form-select" value={company.country} onChange={e => handleChange('country', e.target.value)}>
             <option value="">Select country...</option>
             {countries.map(c => <option key={c} value={c}>{c}</option>)}
