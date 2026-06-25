@@ -24,7 +24,7 @@ Status values: `not-started` · `in-progress` · `done`.
 | `module-6-export-compliance.md` | 6 Export | done | 2026-06-22 | 84b6662 |
 | `non-core-rbac-audit-dashboard.md` (B: Audit) | non-core | done | 2026-06-22 | 55c9191 |
 | `non-core-rbac-audit-dashboard.md` (C: Dashboard) | non-core | done | 2026-06-22 | 1128106 |
-| `module-7-chat-data-upload.md` | 7 Chat Upload | not-started | — | — |
+| `module-7-chat-data-upload.md` | 7 Chat Upload | done | 2026-06-25 | 75e6c90 |
 
 ## Log
 
@@ -38,3 +38,4 @@ _(append one line per completed task/step: `YYYY-MM-DD — <task> — <what ship
 - 2026-06-22 — Non-core B — audit trail view (read-only, filterable, role-gated) — 55c9191
 - 2026-06-22 — Non-core C — role-aware dashboard polish — 1128106
 - 2026-06-22 — Modules 1 & 2 — GRI registry source boundary (API-ready) + Admin metric editor; GRI-only verified — 706e13c
+- 2026-06-25 — Module 7 — chat file upload → extract/map/validate → confirm preview → fill data points (audited data.upload); CSV local, backend boundary for image/PDF/xlsx — 75e6c90
