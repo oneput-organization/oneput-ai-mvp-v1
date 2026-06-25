@@ -14,6 +14,7 @@ each), and acceptance criteria. Conventions live in `/CLAUDE.md` and `.claude/ov
 | 4 | `module-5-report-builder.md` | 5 | build | Needs approved data + roles |
 | 5 | `module-6-export-compliance.md` | 6 | build | Needs reports + approved data + (ideally) audit log |
 | 6 | `non-core-rbac-audit-dashboard.md` (Audit + Dashboard parts) | non-core | build | Audit log threads through all actions; dashboard polishes |
+| 7 | `module-7-chat-data-upload.md` | 7 | build | Chat-driven file upload → extract → fill data points; builds on Modules 3 (collection/validation/flow) & 4 (assistant) |
 
 Modules 1 and 2 (`module-1-framework-setup.md`, `module-2-metrics-registry.md`) are already built for
 GRI; their task files cover **light GRI-only polish** (verify setup flow; Admin metric edit), do them
@@ -31,7 +32,7 @@ opportunistically.
 | `esg-metric-registry` | Module 1 (frameworks), Module 2, Module 5 (templates) |
 | `esg-data-validation` | Module 3 |
 | `rbac-roles` | non-core RBAC, Modules 3/5/6 (gating + flow) |
-| `oneput-ai-assistant` | Module 4 |
+| `oneput-ai-assistant` | Module 4, Module 7 (chat upload extraction) |
 | `report-builder` | Module 5 |
 | `export-compliance` | Module 6 |
 | `audit-log` | non-core Audit, threaded into Modules 3/5/6 actions |

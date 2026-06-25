@@ -24,6 +24,7 @@ Status values: `not-started` · `in-progress` · `done`.
 | `module-6-export-compliance.md` | 6 Export | done | 2026-06-22 | 84b6662 |
 | `non-core-rbac-audit-dashboard.md` (B: Audit) | non-core | done | 2026-06-22 | 55c9191 |
 | `non-core-rbac-audit-dashboard.md` (C: Dashboard) | non-core | done | 2026-06-22 | 1128106 |
+| `module-7-chat-data-upload.md` | 7 Chat Upload | not-started | — | — |
 
 ## Log
 
