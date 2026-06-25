@@ -1114,7 +1114,9 @@ h4 { font-size: var(--font-lg); }
 }
 
 /* ===== CHATBOT ===== */
-.chat-fab {
+/* button.chat-fab: higher specificity than [data-tooltip] so the
+   global tooltip rule can't override position: fixed back to relative */
+button.chat-fab {
   position: fixed;
   bottom: 24px;
   right: 24px;
